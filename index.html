@@ -1,0 +1,1186 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Unit Door Portal</title>
+<style>
+:root{--bg:#f6f7f9;--card:#fff;--ink:#1b2430;--mute:#6b7685;--line:#e3e7ed;--accent:#1f5fbf;--red:#c0392b;--amber:#b7791f;--green:#2f855a;--blue:#2b6cb0;--grey:#718096}
+@media (prefers-color-scheme:dark){:root{--bg:#12161c;--card:#1a2029;--ink:#e8edf3;--mute:#93a0b1;--line:#2a3240;--accent:#6ea8ff;--red:#ff7b6b;--amber:#f0b85a;--green:#5fcf9b;--blue:#7db4ff;--grey:#9aa7b8}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.4 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+header{padding:16px 16px 8px;display:flex;flex-wrap:wrap;gap:8px 16px;align-items:baseline;justify-content:space-between}
+h1{margin:0;font-size:20px}
+.sub{color:var(--mute);font-size:12px}
+.wrap{padding:0 16px 32px;max-width:1500px;margin:0 auto}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px;margin:8px 0 12px}
+.tile{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px 12px;cursor:pointer;text-align:left;color:inherit;font:inherit}
+.tile .n{font-size:24px;font-weight:700}
+.tile .l{font-size:12px;color:var(--mute)}
+.tile.on{outline:2px solid var(--accent)}
+.tile.warn .n{color:var(--red)}
+.bar{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px}
+.bar input,.bar select{background:var(--card);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:8px 10px;font:inherit}
+.bar input{flex:1;min-width:200px}
+.bar label{display:flex;align-items:center;gap:6px;color:var(--mute)}
+table{width:100%;border-collapse:collapse;background:var(--card);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+th.sortable{cursor:pointer;user-select:none;white-space:nowrap}th.sortable:hover{color:var(--ink)}th.sortable .arr{display:inline-block;width:12px;margin-left:3px;font-size:10px}th.sortable.on{color:var(--accent)}th{position:sticky;top:0;background:var(--card);text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:var(--mute);padding:8px 10px;border-bottom:1px solid var(--line)}
+td{padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+tr:last-child td{border-bottom:0}
+.wo{font-weight:600;white-space:nowrap}
+.mute{color:var(--mute);font-size:12px}
+.badge{display:inline-block;padding:2px 8px;border-radius:99px;font-size:12px;font-weight:600;white-space:nowrap;border:1px solid currentColor}
+.s1,.s2{color:var(--grey)}.s3{color:var(--amber)}.s4{color:var(--blue)}.s5{color:var(--green)}.s7{color:var(--accent)}.s0,.s6,.s8{color:var(--grey)}
+.flag{display:inline-block;margin:2px 4px 0 0;padding:1px 6px;border-radius:4px;font-size:11px;background:color-mix(in srgb,var(--red) 14%,transparent);color:var(--red)}
+.empty{padding:32px;text-align:center;color:var(--mute)}
+.note{background:color-mix(in srgb,var(--amber) 14%,transparent);border:1px solid var(--amber);border-radius:8px;padding:8px 12px;margin-bottom:10px;font-size:12px}
+tr.main{cursor:pointer}
+tr.main:hover td{background:color-mix(in srgb,var(--accent) 6%,transparent)}
+tr.main td:first-child::before{content:"\25B8";display:inline-block;width:14px;color:var(--mute)}
+tr.main.open td:first-child::before{content:"\25BE"}
+tr.detail{--card:#fff;--ink:#1b2430;--mute:#6b7685;--line:#e3e7ed;--accent:#1f5fbf;--red:#c0392b;--amber:#b7791f;--green:#2f855a;--blue:#2b6cb0;--grey:#718096}
+tr.detail td{background:#fff;color:#1b2430}
+tr.main.open td:first-child{border-left:3px solid var(--accent)}
+tr.detail td{background:var(--card);padding:12px 16px 14px;border-left:3px solid var(--accent)}
+.dgrid{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:12px 20px}
+.dgrid .k{font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:var(--mute);margin-bottom:2px}
+.dgrid .scope{white-space:pre-wrap}
+.dgrid .wide{grid-column:1/-1;border-top:1px solid var(--line);padding-top:10px}
+.sp li{margin:1px 0}
+.pgrid{display:flex;flex-wrap:wrap;gap:8px;margin-top:4px}
+.pgrid img{height:150px;width:auto;max-width:100%;border-radius:6px;border:1px solid var(--line);display:block;background:#eee}
+.sp ul{margin:2px 0 6px;padding-left:18px}
+@media (max-width:820px){
+ .dgrid{grid-template-columns:1fr}
+ thead{display:none}
+ table,tbody,tr,td{display:block;width:100%}
+ tr{border-bottom:1px solid var(--line);padding:8px 4px}
+ td{border:0;padding:2px 10px}
+}
+
+.estbtn{background:#1f5fbf;color:#fff;border:0;border-radius:8px;padding:9px 16px;font:600 13px/1 inherit;font-family:inherit;cursor:pointer}
+.estbtn:hover{background:#184c99}
+#estOv{position:fixed;inset:0;background:rgba(10,14,20,.6);z-index:50;overflow:auto;padding:20px 12px}
+#estOv[hidden]{display:none}
+.estbar{max-width:816px;margin:0 auto 10px;display:flex;gap:8px;justify-content:flex-end}
+.estbar button{border:0;border-radius:8px;padding:9px 16px;font:600 13px/1 inherit;font-family:inherit;cursor:pointer}
+.estbar .pr{background:#1f5fbf;color:#fff}.estbar .cl{background:#e3e7ed;color:#1b2430}
+#estSheet{max-width:816px;margin:0 auto;background:#fff;color:#1b2430;padding:44px 48px 56px;min-height:700px;font-size:13px;box-shadow:0 8px 30px rgba(0,0,0,.35)}
+#estSheet .hd{display:flex;justify-content:space-between;align-items:flex-start}
+#estSheet .co b{font-size:15px;display:block;margin-bottom:6px}#estSheet .co div{font-size:11px;line-height:1.7}
+#estSheet .logo{width:150px;height:auto}
+#estSheet h2{font-weight:400;font-size:19px;color:#3d8bb8;margin:34px 0 8px}
+#estSheet .meta{display:grid;grid-template-columns:1fr 1fr 220px;gap:16px}
+#estSheet .lb{font-size:11px;color:#8a929c;text-transform:uppercase;margin-bottom:4px}
+#estSheet textarea,#estSheet input{font:inherit;color:#1b2430;border:1px dashed #cfd6de;background:#fbfcfd;border-radius:4px;padding:4px 6px;width:100%;box-sizing:border-box}
+#estSheet textarea{resize:vertical;min-height:58px}
+#estSheet .em{display:grid;grid-template-columns:70px 1fr;gap:6px 8px;align-items:center}
+#estSheet table{width:100%;border-collapse:collapse;margin-top:26px}
+#estSheet th{background:#dbe8f0;color:#3d8bb8;font-weight:400;font-size:12px;text-transform:uppercase;padding:7px 8px;position:static;border:0}
+#estSheet table{display:table!important;width:100%!important;background:transparent!important;border:0!important;border-radius:0!important;overflow:visible!important}
+#estSheet thead{display:table-header-group!important}
+#estSheet tbody{display:table-row-group!important}
+#estSheet tr{display:table-row!important;border:0!important;padding:0!important}
+#estSheet th,#estSheet td{display:table-cell!important;border:0!important}
+#estSheet td{width:auto}
+#estSheet td.r,#estSheet th.r{width:130px!important}
+#estSheet th.r,#estSheet td.r{text-align:right}
+#estSheet td{padding:5px 4px;vertical-align:top;background:transparent!important;color:#1b2430}
+#estSheet td input.amt{text-align:right}
+#estSheet .tot{border-top:1px dashed #b9c2cc;margin-top:6px;padding-top:12px;display:flex;justify-content:flex-end;gap:36px;font-size:15px}
+#estSheet .tot span:first-child{color:#8a929c}
+#estSheet .acc{margin-top:36px;color:#8a929c;line-height:2.6}
+#estSheet .addl{margin-top:6px;font-size:12px;color:#1f5fbf;background:none;border:0;cursor:pointer;padding:2px 0}
+#estSheet .x{background:none;border:0;color:#b0b7c0;cursor:pointer;font-size:16px;width:24px}
+#estSheet.pdfmode .addl,#estSheet.pdfmode .x{display:none!important}
+#estSheet.pdfmode{box-shadow:none;margin:0}
+#estSheet.pdfmode textarea,#estSheet.pdfmode input{border:0;background:none;padding:0;resize:none}
+@media print{
+  body>*:not(#estOv){display:none!important}
+  #estOv{position:static;background:none;padding:0;overflow:visible}
+  .estbar,#estHelp,#estSheet .addl,#estSheet .x{display:none!important}
+  #estSheet{box-shadow:none;max-width:none;padding:0}
+  #estSheet textarea,#estSheet input{border:0;background:none;padding:0;resize:none}
+  @page{margin:.5in}
+}
+
+.specs{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px 14px;margin-top:4px}
+.specs label{display:block;font-size:11px;color:var(--mute);margin-bottom:3px}
+.specs input,.specs select{width:100%;box-sizing:border-box;font:inherit;font-size:13px;color:#1b2430;background:#fff;border:1px solid #cfd6de;border-radius:6px;padding:6px 8px}
+.specs .sz{display:flex;gap:6px;align-items:center}.specs .sz span{color:var(--mute);font-size:12px}
+
+.tabs{display:flex;gap:4px;padding:0 16px;max-width:1500px;margin:0 auto 14px;border-bottom:1px solid var(--line)}
+.tab{background:none;border:0;border-bottom:2px solid transparent;padding:10px 16px;color:var(--mute);font:600 14px/1 inherit;font-family:inherit;cursor:pointer;margin-bottom:-1px}
+.tab:hover{color:var(--ink)}.tab.on{color:var(--ink);border-bottom-color:var(--accent)}
+.view[hidden]{display:none}
+.lt td,.lt th{white-space:nowrap}.lt td.wrapok{white-space:normal}
+.lt input,.lt select{font:inherit;font-size:13px;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:4px 6px}
+.lt .del{background:none;border:0;color:var(--mute);cursor:pointer;font-size:16px}.lt .del:hover{color:var(--red)}
+.lt .lnk{background:none;border:0;color:var(--accent);cursor:pointer;font:600 13px inherit;font-family:inherit;padding:0 8px 0 0}
+.lt .over{color:var(--red);font-weight:600}
+.addrow{display:flex;flex-wrap:wrap;gap:8px;align-items:flex-end;margin-bottom:12px}
+.addrow label{display:block;font-size:11px;color:var(--mute);margin-bottom:3px}
+.addrow input,.addrow select{font:inherit;font-size:13px;color:var(--ink);background:var(--card);border:1px solid var(--line);border-radius:8px;padding:8px 10px}
+.btn{background:#1f5fbf;color:#fff;border:0;border-radius:8px;padding:9px 14px;font:600 13px/1 inherit;font-family:inherit;cursor:pointer}
+.btn.sec{background:var(--card);color:var(--ink);border:1px solid var(--line)}
+.estbar .sv{background:#2f855a;color:#fff}
+@media (max-width:820px){.lt td[data-label]::before{content:attr(data-label) ": ";color:var(--mute);font-size:11px}.lt td,.lt th{white-space:normal}}
+
+#estHelp{max-width:816px;margin:0 auto 10px;background:#eef5fb;color:#1b2430;border-radius:10px;padding:10px 14px;font-size:13px;display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center}
+#estHelp b{font-size:12px;text-transform:uppercase;letter-spacing:.04em;color:#3d8bb8}
+#estHelp select{font:inherit;border:1px solid #cfd6de;border-radius:6px;padding:5px 7px;background:#fff;color:#1b2430}
+#estHelp input{width:76px;font:inherit;border:1px solid #cfd6de;border-radius:6px;padding:5px 7px;background:#fff;color:#1b2430}
+#estHelp input[type=checkbox]{width:auto}
+#estHelp .sv2{display:inline-flex;gap:5px;align-items:center;font-size:12px}
+#estHelp input.pi{width:74px;text-align:right}
+#estHelp input.pc{width:44px;text-align:right}
+#estHelp .mute2{color:#6b7685}
+#estHelp .svc{flex-basis:100%;display:flex;flex-wrap:wrap;gap:6px 14px;align-items:center}
+#estHelp label.hc{display:flex;gap:4px;align-items:center;font-size:12px}
+#estHelp .brk{margin-top:4px;padding-top:6px;border-top:1px solid #cfe0ec}
+#estHelp .out b{text-transform:none;letter-spacing:0;font-size:inherit;color:inherit}
+#estHelp .out{font-size:14px;flex-basis:100%;line-height:1.5}
+#estHelp button{border:0;border-radius:6px;padding:6px 11px;font:600 12px inherit;font-family:inherit;cursor:pointer;background:#1f5fbf;color:#fff}
+#estHelp button.sec{background:#dbe8f0;color:#1b2430}
+details.jx{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px 14px;margin-bottom:12px}
+details.jx summary{cursor:pointer;font-weight:600}
+#jRows input,#jRows select{background:var(--card)}
+#jRows input[data-f=price]{text-align:right}
+.vsec{font-size:16px;margin:22px 0 8px;font-weight:700}
+.vsec:first-of-type{margin-top:6px}
+details.jx .addrow{margin:12px 0 8px}
+</style>
+</head>
+<body>
+<header>
+  <h1>Unit Door Portal</h1>
+  <div class="sub" id="src"></div>
+</header>
+<div class="tabs" id="tabs">
+  <button class="tab on" data-v="wo">Work Orders</button>
+  <button class="tab" data-v="est">Estimates <span class="mute" id="estCnt"></span></button>
+  <button class="tab" data-v="mat">Ordered Material <span class="mute" id="matCnt"></span></button>
+</div>
+<div class="wrap view" id="view-wo">
+  <div id="note"></div>
+  <div class="tiles" id="tiles"></div>
+  <div class="bar">
+    <input id="q" type="search" placeholder="Search project number, store, unit, vendor, contact...">
+    <select id="fPm"></select>
+    <select id="fVendor"></select>
+    <select id="fOcc"></select>
+    <select id="fRud"></select>
+    <select id="sort">
+      <option value="age">Oldest first</option>
+      <option value="new">Newest first</option>
+      <option value="pm">PM</option>
+      <option value="store">Store</option>
+      <option value="stage">Stage</option>
+      <option value="col" hidden>Column sort</option>
+    </select>
+    <label><input type="checkbox" id="fAttn"> Needs attention only</label>
+  </div>
+  <table>
+    <thead><tr><th class="sortable" data-k="wo">Project No.<span class="arr"></span></th><th class="sortable" data-k="store">Store<span class="arr"></span></th><th class="sortable" data-k="desc">Description<span class="arr"></span></th><th class="sortable" data-k="owner">Owner Proj. No.<span class="arr"></span></th><th class="sortable" data-k="stage">Stage<span class="arr"></span></th><th class="sortable" data-k="pm">PM<span class="arr"></span></th><th class="sortable" data-k="vendor">Vendor<span class="arr"></span></th><th class="sortable" data-k="access">Access<span class="arr"></span></th><th class="sortable" data-k="issue">Issue<span class="arr"></span></th><th class="sortable" data-k="start">Start<span class="arr"></span></th><th class="sortable" data-k="age">Age<span class="arr"></span></th></tr></thead>
+    <tbody id="rows"></tbody>
+  </table>
+  <div class="empty" id="empty" hidden>No work orders match.</div>
+</div>
+
+<div class="wrap view" id="view-est" hidden>
+  <div class="tiles" id="estTiles"></div>
+  <details class="jx" id="janusBox"><summary>Janus Door Pricing <span class="mute" id="jCnt"></span></summary>
+    <div class="addrow">
+      <div><label>Width</label><input id="jW" size="6" placeholder="8"></div>
+      <div><label>Height</label><input id="jH" size="6" placeholder="7'2&quot;"></div>
+      <div><label>Color / note / source</label><input id="jNote" size="26" placeholder="e.g. Royal Blue, est 260754"></div>
+      <div><label>Date</label><input id="jDate" type="date"></div>
+      <div><label>Door price $</label><input id="jPrice" size="9" inputmode="decimal" placeholder="950"></div>
+      <div><label>Ship via</label><select id="jVia"><option>LTL</option><option>Hot Shot</option><option>Pick Up</option></select></div>
+      <button class="btn" id="jAdd">Add price</button>
+      <button class="btn sec" id="jCsv">Export CSV</button>
+    </div>
+    <table class="lt"><thead><tr><th>Size (W × H)</th><th>Sq ft</th><th>Note</th><th>Date</th><th>Door price</th><th>Ship via</th><th>$ / sq ft</th><th></th></tr></thead><tbody id="jRows"></tbody></table>
+    <div class="mute" id="jEmpty" style="padding:8px 0">No prices saved yet. Add door prices from older Janus estimates and the price check will use them.</div>
+  </details>
+  <div class="bar">
+    <input id="estQ" type="search" placeholder="Search estimates by project, store or address...">
+    <select id="estFStatus"></select>
+    <button class="btn" id="estNew">+ New Estimate</button><button class="btn sec" id="estCsv">Export CSV</button>
+  </div>
+  <table class="lt"><thead><tr><th>Estimate / Project No.</th><th>Store</th><th>Site address</th><th>Date</th><th>Total</th><th>Status</th><th></th></tr></thead><tbody id="estRows"></tbody></table>
+  <div class="empty" id="estEmpty" hidden>No estimates yet. Open a work order and click "Create Door Replacement Estimate", then Save.</div>
+</div>
+<div class="wrap view" id="view-mat" hidden>
+  <div class="bar">
+    <input id="matQ" type="search" placeholder="Search both lists by project, item or vendor...">
+    <button class="btn sec" id="matCsv">Export CSV</button>
+  </div>
+
+  <h2 class="vsec">Materials Needing to Be Ordered <span class="mute" id="needCnt"></span></h2>
+  <div class="addrow">
+    <div><label>Project No.</label><input id="nWo" list="mWoList" size="9" placeholder="26xxxx"><datalist id="mWoList"></datalist></div>
+    <div><label>Item</label><input id="nItem" size="28" placeholder="e.g. 8x7 Janus door, Royal Blue"></div>
+    <div><label>Qty</label><input id="nQty" size="3" value="1"></div>
+    <div><label>Vendor</label><input id="nVendor" size="16" list="mVendList"><datalist id="mVendList"></datalist></div>
+    <div><label>Note</label><input id="nNote" size="22" placeholder="size, color, mount..."></div>
+    <button class="btn" id="nAdd">Add to list</button>
+  </div>
+  <div class="mute" id="nInfo" style="margin:6px 0"></div>
+  <div class="addrow" style="margin-top:8px">
+    <div><label>Email to</label><input id="nTo" size="30" value="stacey.stanford@janusintl.com" readonly></div>
+    <button class="btn" id="nEmail">Email order request</button>
+    <span class="mute">Emails the checked items (or all if none checked)</span>
+  </div>
+  <table class="lt"><thead><tr><th></th><th>Project No.</th><th>Item</th><th>Qty</th><th>Vendor</th><th>Note</th><th>Added</th><th></th></tr></thead><tbody id="nRows"></tbody></table>
+  <div class="empty" id="nEmpty" hidden>Nothing waiting to be ordered. Add what you need above.</div>
+
+  <h2 class="vsec">Ordered Materials <span class="mute" id="ordCnt"></span></h2>
+  <div class="tiles" id="matTiles"></div>
+  <div class="addrow">
+    <div><label>Project No.</label><input id="mWo" list="mWoList" size="9" placeholder="26xxxx"></div>
+    <div><label>Item</label><input id="mItem" size="26" placeholder="Log an order directly"></div>
+    <div><label>Qty</label><input id="mQty" size="3" value="1"></div>
+    <div><label>Vendor</label><input id="mVendor" size="16" list="mVendList"></div>
+    <div><label>Ordered</label><input id="mOrd" type="date"></div>
+    <div><label>ETA</label><input id="mEta" type="date"></div>
+    <div><label>Status</label><select id="mStatus"></select></div>
+    <button class="btn" id="mAdd">Add</button>
+    <select id="matFStatus" style="margin-left:auto"></select>
+  </div>
+  <table class="lt"><thead><tr><th>Project No.</th><th>Item</th><th>Qty</th><th>Vendor</th><th>Ordered</th><th>ETA</th><th>Status</th><th></th></tr></thead><tbody id="matRows"></tbody></table>
+  <div class="empty" id="matEmpty" hidden>Nothing ordered yet. Mark an item above as ordered, or log one directly.</div>
+</div>
+
+
+
+<div id="estOv" hidden>
+  <div class="estbar"><button class="sv" id="estSave">Save Estimate</button><button class="sv" id="estEmail" style="background:#b7791f">Email Stacey</button><button class="pr" id="estPrint">Save as PDF</button><button class="cl" id="estClose">Close</button></div>
+  <div id="estHelp"><b>Janus price check</b>
+    <span>Door size</span><input id="hW" placeholder="Width"><span>×</span><input id="hH" placeholder="Height"><span>Doors</span><input id="hQty" value="1" inputmode="numeric" style="width:46px"><span>Ship via</span><select id="hVia"><option>LTL</option><option>Hot Shot</option><option>Pick Up</option></select>
+    <button id="hUse" class="sec">Fill estimate lines</button><button id="hSave">Save to price list</button>
+    <div class="svc"><b>Include</b>
+      <span class="sv2"><label class="hc"><input type="checkbox" id="hMat" checked> Door material (each)</label><input class="pi" id="iMat" inputmode="decimal"></span>
+      <span class="sv2"><label class="hc"><input type="checkbox" id="hInst" checked> Install labor (each)</label><input class="pi" id="iInst" inputmode="decimal"></span>
+      <span class="sv2"><label class="hc"><input type="checkbox" id="hRecv" checked> Receiving (total)</label><input class="pi" id="iRecv" inputmode="decimal"></span>
+      <span class="sv2"><label class="hc"><input type="checkbox" id="hDec" checked> Decrating (each)</label><input class="pi" id="iDec" inputmode="decimal"></span>
+      <span class="sv2"><label class="hc"><input type="checkbox" id="hDis" checked> Disposal (each)</label><input class="pi" id="iDis" inputmode="decimal"></span>
+      <button id="hReset" class="sec">Reset prices</button></div>
+    <div class="svc"><b>Margin</b>
+      <label class="hc"><input type="checkbox" id="hMrg" checked> Apply</label>
+      <span class="sv2">Shown OH&amp;P <input class="pc" id="hShown" inputmode="decimal">%</span>
+      <span class="sv2">Real margin <input class="pc" id="hReal" inputmode="decimal">%</span>
+      <span class="sv2">Hide in material <input class="pc" id="hHidM" inputmode="decimal">% <span class="mute2">(labor gets the rest)</span></span></div>
+    <div class="out" id="hOut"></div></div>
+  <div id="estSheet">
+    <div class="hd"><div class="co"><b>Farmer Development, Inc.</b><div>124 Grand Ave<br>Fowlerville, MI 48836<br>(517) 518-4433<br>jfarmer@farmerdevelopment.com<br>www.farmerdevelopment.com</div></div><img class="logo" alt="Farmer Companies" src="data:image/png;base64,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Xbv2//7v/5wJO+vdh8MZ7XvuuYfpia/nFTJr1qxOnTo1NFYdGmj38QvnCwcsdmVlZY0YMWLjxo1hrt7wye6pp57q1KmTLUPxyD/zzDOvvfZavSMPp5ylI3COSk0TloQzzsA1K+H2ubg3AxITwDSx5aghGqMNtUUJtv+dffbZkydPdmapCr3p3XDDDU899dSOHTvsZKqapu3ateuFF16YNm0aa7xCryg/P+UQb4Q382effXbMmDF+5/k777xz5MiRffv2DczvHP6B377SNnlef/31zz33nG0k7tWr1/Tp03mPbY53xOedJ5544r333vN4PPXK83YHucter3fXrl1FRUWcvSqck3W9GX2ZfSzLat++/Zo1ay699FI/o9u0adPOOeecbt26hc5UfGrShJ+kowmwJLRrC6tXwPS5sHcvxCeR6fWluWqOzLuBZ9RwDq4NmpGapn377bdvv/22M/53/vz5PC3qVW3wZVFRUXfdddd1113nzFgBACtXrpwyZUpSUlITshvvWqNHj77//vvvu+8+O/xM07SSkpKbbrqJjTV+6TbrPZ0FlTL453nz5r322mucIF9KuXDhwri4uBDm3sD8lPVW3LMbab/cPXv27Nmzp0H+3YHO1GEWfHQGiYfoDo/8xIkT586d+8gjj9j1kzRNy83NveWWW+ysBU2u1m3huomaaDE7QkxKaJMKq1dS3z5UWAiGAYRA2Cw1geoK12vaoedAJjtEYtiwYVdeeaWfy1C9Hv6TJ08eOHCgvaex8yLn1A2qja9LNx60zqXf9GXDxz333ONMk88G/M2bN997773sJRU6y4ZtqQmR6Zv1pmeeeebtt9/OMvaoUaOuvfZa7l3QkM2gytcw8+U6CYXzRNUL9lmwf+WfQxd8rEt2cCbXC6HOBIAHH3xwxIgRtuDAI79+/folS5bwiLXuXJgRS/jocKwQAqSElCR8cgUMGgAFBaDrQNRcrS8qKgIAwzBsGxUA2MFRjRcl3njjjbfeekvXdURkd+MJEyawdB3+rXhrveiii7iptqcTIj7yyCObN2/mfdiZbVEIUVVVxbGG9iwHgJKSksA1HDineTbbcZlsQOWnP/zww+vWrQuddK+srIz9lwKfG3RhzJgxIz09HQAeeOABv43X7hHXXnT6swAA97EukzB/WF5eznoW/laD/MT8jE1Og24IaaKsrKyiosJv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"></div>
+    <h2>Estimate</h2>
+    <div class="meta">
+      <div><div class="lb">Address</div><textarea id="estAddr"></textarea></div>
+      <div><div class="lb">Ship To</div><textarea id="estShip"></textarea></div>
+      <div class="em"><div class="lb" style="margin:0">Estimate</div><input id="estNo"><div class="lb" style="margin:0">Date</div><input id="estDate"></div>
+    </div>
+    <table><thead><tr><th style="width:0"></th><th style="text-align:left">Description</th><th class="r">Amount</th><th style="width:24px"></th></tr></thead><tbody id="estLines"></tbody></table>
+    <button class="addl" id="estAdd">+ Add line</button>
+    <div class="tot"><span>TOTAL</span><b id="estTot">$0.00</b></div>
+    <div class="acc">Accepted By<br>Accepted Date</div>
+  </div>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<script>
+// ---------- CONFIG ----------
+// Live data: Smartsheet API through your Cloudflare Worker proxy (same one the vendor portals use).
+// If the live call fails the page falls back to the snapshot below.
+const PROXY_URL = "https://ss-proxy.zkranich.workers.dev";
+const SHEET_ID  = "7509734909828";           // FM & CapEx PBR
+const SHEET_PATH = "/sheets/" + SHEET_ID;    // adjust if your proxy routes differently
+const TRADE_VALUE = "Units Doors";           // Trade picklist value
+const SNAPSHOT_AT = "Nov 2, 2026 2:00 PM";
+// ---------- SNAPSHOT ----------
+// [WO, store, desc, stepNum, vendor, vendorStepNum, occ, rud, created, start, contact, combo]
+// occ: NK/KF/CC/V   rud: S spring, O off track, H hasp, D door replacement
+const SNAP=[
+["260754","PS 20157","Unit 226 Replacement",3,"Parkinson Enterprises","","","","2026-04-08","","",""],
+["260955","DSS 9279","Unit F310, N1129, N1133, R860 Springs",3,"Parkinson Enterprises","","","","2026-04-27","","Courtney Owens",""],
+["261098","MP 5235","Door replacement",3,"",0,"","","2026-05-07","","Kevin Cleary",""],
+["261421","DSS 9282","Unit 168 Door Replacement",5,"Multilakes Handyman Services","","","","2026-06-08","2026-10-30","Courtney Owens",""],
+["261448","CS 3529","Unit A011 B059 C088 D139 D152 E174 Springs",3,"","","","","2026-06-10","","Aaron Custer",""],
+["261482","DSS 9287","RUD Installation",3,"","","","","2026-06-15","","Cam Coomer",""],
+["261652","PS 08091","Unit 4121 broken spring customer wants appointment",4,"Parkinson Enterprises","","NK","S","2026-06-23","","Cody Taylor","Appointment Needed"],
+["261671","DSS 9279","Unit C156",3,"","","","","2026-06-25","","Courtney Owens",""],
+["261865","PS 23819","Pier damage",3,"Janus",1,"","","2026-07-15","","Brandon Barber",""],
+["261867","DSS 9121","Unit F07 Springs",3,"Tradesmans Services","","","","2026-07-15","","Courtney Owens",""],
+["261870","PS 08085","Unit 5009 Spring/Track",4,"Parkinson Enterprises","","CC","S","2026-07-15","","Travis Kimball","4626"],
+["261932","DSS 9280","Unit 280 Off Track/Spring",3,"Tradesmans Services","","","","2026-07-21","","Courtney Owens",""],
+["261982","PS 20157","Unit 1024 Replacement",1,"Janus","","V","D","2026-07-27","","Katie Outer",""],
+["262149","PS 08092","Unit 4021 Door Replacement",4,"Multilakes Handyman Services",2,"","D","2026-07-31","","Tyra Sapelak",""],
+["262214","PS 68190","3 units spring replacement: Units 615, 124B, 517/518 (All occupied) KEYS ARE ON SITE",4,"","","KF","S","2026-08-06","","Travis Kimball","Keys on Cabinet"],
+["262460","DSS 9286","Unit E10 off Track",3,"","","KF","","2026-08-27","","Courtney Owens",""],
+["262463","PS 23819","Door hit between units 704 and 705 assess",4,"Janus","","","","2026-08-27","","Brandon Barber",""],
+["262469","CS 3529","Unit A011, A020, B059, C088, D139, D152 springs",4,"Parkinson Enterprises","","","","2026-08-28","","Aaron Custer",""],
+["262477","DSS 9285","Unit 5314 Roof Leak",3,"Multilakes Handyman Services","","","","2026-08-28","","Courtney Owens",""],
+["262490","DSS 9281","Unit 24 & 52 Hasp",4,"Parkinson Enterprises","","NK","H","2026-08-31","","Courtney Owens",""],
+["262551","PS 68201","Unit 722A 254B springs",1,"",7,"KF","S","2026-09-08","2026-10-19","Katie Outer",""],
+["262554","PS 08373","Unit 4133 Off Track",4,"Parkinson Enterprises",7,"V","O","2026-09-08","","Travis Kimball",""],
+["262562","PS 26981","Unit 0131 and Unit 0157",3,"We Fix Garage Doors","","","","2026-09-08","","Fred Leonow",""],
+["262563","PS 23606","Unit A010 Spring",4,"Parkinson Enterprises","","KF","S","2026-09-08","","James Galba",""],
+["262569","PS 08091","Unit 562A Spring",4,"Parkinson Enterprises","","CC","S","2026-09-08","","James Galba","5084"],
+["262575","PS 68184","Unit 0721A Hasp",4,"Parkinson Enterprises","","V","H","2026-09-08","","Jeff Novak",""],
+["262612","CS 4399","Unit 2016 Spring Tension",7,"Boylan Overhead Doors",6,"","","2026-09-14","2026-10-30","Mike Hills",""],
+["262618","PS 68183","Unit 0907 Spring",4,"Parkinson Enterprises","","CC","S","2026-09-14","","Jeff Novak","1737"],
+["262619","PS 08089","Unit 1106 Off Track/Hasp Replacement",4,"Parkinson Enterprises","","V","O","2026-09-14","","Jeff Novak",""],
+["262634","PS 26578","Unit 051",3,"We Fix Garage Doors","","","","2026-09-14","","Fred Leonow",""],
+["262692","PS 68227","Unit 0125",3,"We Fix Garage Doors","","V","","2026-09-15","","Fred Leonow",""],
+["262698","CS 4399","Cube door pushed in off track in one corner",7,"Boylan Overhead Doors",6,"","","2026-09-15","2026-10-30","Mike Hills",""],
+["262718","CS 5538","Cube door right spring snapped replace springs on site",7,"Dover Doors","","","","2026-09-17","2026-10-02","Chantel Shaw",""],
+["262722","ES 2088","(4) Weather Strips, keypads, exit sign",1,"Tradesmans Services","","","","2026-09-18","","Robert Koehler",""],
+["262725","PS 68197","Unit 0206 Spring",4,"Parkinson Enterprises","","CC","S","2026-09-18","","Jeff Novak","2450"],
+["262730","DSS 9279","Unit P1015, J543, M761, R812 Springs",3,"","","KF","","2026-09-21","","Courtney Owens",""],
+["262754","PS 68429","Unit 0605",5,"Man VS Door","","KF","","2026-09-21","2026-11-05","Karen Gnessin",""],
+["262762","PS 68429","Unit 0519",5,"Man VS Door","","","","2026-09-22","2026-11-09","Karen Gnessin",""],
+["262769","MP 5235","Unit Door Repairs",4,"Parkinson Enterprises","","","S","2026-09-22","","Dawn Devolder",""],
+["262792","PS 21808","Unit Door Break in and Fence Repair",3,"Abstract Overhead Door & Fence Company","","","","2026-09-23","","Pablo Contreas",""],
+["262801","Storage Sense","Unit door replacement - Unit 419",3,"","","V","","2026-09-23","","",""],
+["262835","CS 4721","Back Bay Door Springs",4,"Parkinson Enterprises",7,"V","","2026-09-28","","Aaron Custer",""],
+["262873","PS 24516","Unit F0603 replacement",3,"Local Garage Door Service","","","D","2026-09-29","","Phil Blazejewski",""],
+["262877","CS 4399","Unit 2040 Spring Tension",7,"Boylan Overhead Doors",6,"V","","2026-09-29","2026-10-30","Mike Hills",""],
+["262882","DSS 9172","RUD door Repairs",3,"D & L Garage Door Services","","","","2026-09-29","","James Plunkett",""],
+["262895","PS 22036","Unit 1A09 Stuck",4,"Parkinson Enterprises","","KF","S","2026-09-30","","Tyra Sapelak","Key is on file back break room lock box"],
+["262935","PS 08085","Unit 5009 and 3068 Springs",3,"",7,"CC","S","2026-10-02","","Travis Kimball","4626"],
+["262966","PS 68190","Unit 614a Spring Replacement",4,"Parkinson Enterprises","","V","S","2026-10-05","","Travis Kimball",""],
+["262971","CS 0702","Unit 815 Spring Adjustment",2,"","","","","2026-10-05","2026-10-26","TL Brimhall",""],
+["262985","PS 23222","Units H1535 and G1327",3,"Abstract Overhead Door & Fence Company","","","","2026-10-06","","Pablo Contreas",""],
+["262986","PS 08128","Unit 0699 Off Track",3,"","","","","2026-10-06","","Pablo Contreas",""],
+["262987","PS 68201","Door Repairs",1,"",7,"","S","2026-10-06","","Katie Outer",""],
+["262997","PS 23606","Unit 9169 Only Rolls half way up",4,"Parkinson Enterprises","","CC","S","2026-10-06","","James Galba","1408"],
+["262998","PS 08261","Unit 0501 Spring",4,"Parkinson Enterprises","","V","S","2026-10-06","","Jeff Novak",""],
+["263001","PS 27812","Unit C005 Spring",4,"Parkinson Enterprises","","V","S","2026-10-06","","Jeff Novak",""],
+["263002","PS 68183","Unit 407 Spring",4,"Parkinson Enterprises","","CC","S","2026-10-06","","Jeff Novak","4526"],
+["263019","DSS 9281","Unit N32, G09, C45, G25, J02, C52 Door Repairs",3,"","","","","2026-10-07","","Courtney Owens",""],
+["263039","PS 24329","Unit L006",3,"Man VS Door","","V","O","2026-10-08","","Fred Leonow",""],
+["263040","CS 4336","Unit relocation",2,"","","","","2026-10-08","","Javier Rivera",""],
+["263043","DSS 9286","Unit G48 Door Replacement",3,"Tradesmans Services","","V","D","2026-10-08","","Courtney Owens",""],
+["263046","DSS 9283","15 Unit Door Repairs",3,"Parkinson Enterprises","","","S","2026-10-08","","Courtney Owens",""],
+["263059","PS 08373","Unit 5344 Spring and Hasp",4,"Parkinson Enterprises",7,"KF","S","2026-10-09","","Travis Kimball","7621"],
+["263064","CS 0645","Unit 413",4,"Cannon Performance","","KF","S","2026-10-12","","Monica Edwards","Key On File"],
+["263095","DSS 9279","Unit A20, E276, J517, J57678 Springs",4,"Multilakes Handyman Services","","V","S","2026-10-12","","Courtney Owens",""],
+["263102","CS 3463","Unit 109 spring and weather seal",2,"","","","S","2026-10-13","","TL Brimhall",""],
+["263104","PS 22036","1 C25 Jammed",4,"Parkinson Enterprises","","KF","O","2026-10-13","","Tyra Sapelak",""],
+["263111","PS 26555","Unit B021 Chain Came off Door",4,"Parkinson Enterprises","","CC","O","2026-10-13","","Travis Kimball","6429"],
+["263113","PS 77915","Unit 0145 and 0456",3,"Man VS Door","","V","S","2026-10-13","2026-10-21","Fred Leonow",""],
+["263114","PS 08697","Unit 6066 Spring",4,"Parkinson Enterprises",7,"V","S","2026-10-13","","Travis Kimball",""],
+["263122","PS 08099","Unit 6075 Weather Seal",4,"Parkinson Enterprises","","NK","","2026-10-13","","Tyra Sapelak","meet with tenant"],
+["263124","PS 68189","Unit 1022B Double Door Off Track",4,"Parkinson Enterprises","","V","O","2026-10-13","","Travis Kimball",""],
+["263125","PS 28222","Unit 301",3,"Man VS Door","","KF","H","2026-10-13","","Fred Leonow",""],
+["263128","PS 77730","Unit 0119 Stuck",4,"Parkinson Enterprises","","CC","S","2026-10-14","","Tyra Sapelak","2029"],
+["263158","PS 68438","Unit D003",5,"Man VS Door","","V","O","2026-10-14","2026-10-30","Fred Leonow",""],
+["263164","PS 68228","Unit 1849, 1833, 1832, 1742, and 1748",3,"Man VS Door","","","O","2026-10-15","","Fred Leonow",""],
+["263165","PS 77732","Unit B063 Stuck",3,"Overhead Door Company of Lawrence (DH Pace)","","V","S","2026-10-15","","Stacey Hagebusch",""],
+["263192","PS 08098","Unit 0512 Hasp",4,"Parkinson Enterprises","","V","H","2026-10-16","","Tyra Sapelak",""],
+["263195","PS 08701","Unit 2164 Wont stay up",4,"Parkinson Enterprises","","V","S","2026-10-16","","Jeff Novak",""],
+["263202","PS 68201","Unit157 and 423B Springs",4,"Parkinson Enterprises","","CC","S","2026-10-19","","Katie Outer","2443 & 7064"],
+["263218","PS 68185","Unit 0575 Off Track",4,"Parkinson Enterprises","","NK","O","2026-10-19","","Jeff Novak","Stuck Open"],
+["263220","PS 20157","Unit 1024 Hasp, 0226 Door Replacement, 514 Insulation",5,"Janus","","V","S","2026-10-19","","Katie Outer",""],
+["263223","PS 08085","Unit 2008 spring replacement roll-up stuck open",3,"","","V","S","2026-10-19","2026-10-27","Travis Kimball",""],
+["263250","PS 26981","Spring replacement Unit 0157",3,"Man VS Door","","CC","S","2026-10-21","","Fred Leonow","3443"],
+["263258","PS 08698","Unit 2281 Hasp",5,"Parkinson Enterprises","","CC","H","2026-10-22","","Katie Outer","No lock due to unable to secure"],
+["263259","PS 08698","Unit 1056 and 2040 Hasps",5,"Parkinson Enterprises","","KF","H","2026-10-22","","Katie Outer","Not able to secure so open"],
+["263266","PS 08087","Unit 1194 Hasp",4,"Parkinson Enterprises","","CC","H","2026-10-23","","Tyra Sapelak","8008"],
+["263280","PS 08085","Unit 5065 spring replacement",3,"","","","","2026-10-26","2026-10-27","Travis Kimball",""],
+["263283","PS 68187","Unit 631 Off Track and 765/766 Springs",4,"Parkinson Enterprises","","V","S","2026-10-26","","Katie Outer",""],
+["263288","CS 3529","Unit A009, E186 and E210 Springs",3,"Parkinson Enterprises","","","S","2026-10-26","","Aaron Custer",""],
+["263305","PS 20157","Unit 918 Stuck",5,"Janus","","V","S","2026-10-26","","Katie Outer",""],
+["263314","PS 68219","Door Repairs",3,"Man VS Door","","V","S","2026-10-26","","Karen Gnessin",""],
+["263316","CS 6683","Unit 4076 Door Stuck",2,"Snowbird Garage Doors","","","","2026-10-26","","Barry Rood",""],
+["263318","PS 77730","Unit 0039 Spring",4,"Parkinson Enterprises","","V","S","2026-10-26","","Tyra Sapelak","No Lock"],
+["263319","PS 27812","Unit D090 OFF Track",4,"Parkinson Enterprises","","CC","O","2026-10-26","","Jeff Novak","No lock on unit"],
+["263321","PS 68200","Unit 0541 Spring",5,"Parkinson Enterprises","","CC","S","2026-10-27","","Tyra Sapelak","0829"],
+["263322","PS 68180","Unit 435 Off Track",5,"Parkinson Enterprises","","CC","O","2026-10-27","","Tyra Sapelak","7459"],
+["263323","PS 68180","Unit 517 Door Bracket",5,"Parkinson Enterprises","","V","O","2026-10-27","","Tyra Sapelak",""],
+["263326","PS 08098","Units 0846, 0530, 0611 Springs",5,"Parkinson Enterprises","","V","S","2026-10-27","","Tyra Sapelak",""],
+["263337","PS 68722","Unit 93 Springs",3,"Samson Garage Doors",5,"","S","2026-10-27","2026-10-29","Jamie White",""],
+["263339","PS 68190","Unit 438B Spring",4,"","","CC","S","2026-10-27","","Travis Kimball","6517"],
+["263344","PS 24404","Unit J398",5,"Man VS Door","","V","S","2026-10-27","2026-11-04","Karen Gnessin",""],
+["263347","PS 24304","Units B208 and E541",5,"Man VS Door","","","","2026-10-27","2026-11-04","Karen Gnessin",""],
+["263349","PS 68222","Units 0318, 0312, and 0322",3,"Man VS Door","","","","2026-10-27","","Karen Gnessin",""],
+["263357","PS 28221","Units 336 and 340",5,"Man VS Door","","","","2026-10-28","2026-11-10","Fred Leonow",""],
+["263358","PS 28221","Unit A1002",5,"Man VS Door","","","","2026-10-28","2026-11-02","Fred Leonow",""],
+["263367","PS 68220","Unit 0612",5,"Man VS Door","","","","2026-10-28","2026-11-04","Laura Goland",""],
+["263374","PS 78138","Units 329D and 825L",5,"Man VS Door","","","","2026-10-28","2026-11-06","Fred Leonow",""],
+["263378","PS 21808","Unit C038 & Unit D016",5,"Local Garage Door Service",5,"KF","S","2026-10-28","2026-11-03","Pablo Contreas",""],
+["263379","PS 23222","Unit Door G1342",5,"Local Garage Door Service",5,"","S","2026-10-28","2026-11-03","Pablo Contreas",""],
+["263391","PS 24343","Unit K011",5,"Man VS Door","","","","2026-10-30","2026-11-05","Fred Leonow",""],
+["263392","PS 68184","Unit 0721A Hasp (Door might need to be replaced)",4,"Parkinson Enterprises","","","","2026-10-30","","Jeff Novak",""],
+["263393","CS 0514","Cube P059 loose dividers secure both sides",1,"","","","","2026-10-30","","Barry Rood",""],
+["263394","PS 20157","Unit 423 Springs",5,"Janus","","V","S","2026-10-30","","Katie Outer","No Lock On Unit"],
+["263395","PS 68230","Unit 1632",5,"Man VS Door","","","","2026-10-30","2026-11-10","Fred Leonow",""],
+["263396","PS 68230","Unit 1305",5,"Man VS Door","","","","2026-10-30","2026-11-10","Fred Leonow",""],
+["263397","PS 26578","Unit 009",5,"Man VS Door","","","","2026-10-30","2026-11-06","Fred Leonow",""],
+["263407","PS 78138","Unit 116A",5,"Man VS Door","","","","2026-10-30","2026-11-06","Fred Leonow",""],
+["263408","PS 08373","Unit 5037 rusty weather strip at left handle",4,"Parkinson Enterprises","","V","","2026-10-30","","Travis Kimball",""],
+["263410","PS 78134","Unit 119A",5,"Man VS Door","","","","2026-10-30","2026-11-10","Fred Leonow",""],
+["263412","PS 08261","Unit 501, 612, 706, 733, 821 Springs",4,"Parkinson Enterprises","","V","S","2026-10-30","","Jeff Novak",""],
+["263413","PS 68190","Unit 518, 615, 124B, 722 Spring Repairs",1,"","","CC","S","2026-10-30","","Travis Kimball","in Scope"],
+["263419","CS 4825","4 units spring replacement Bldgs 2 and 3",1,"","","","","2026-10-30","","Travis Vaillancourt",""],
+["263426","PS 68200","Unit 0541 Spring",5,"Parkinson Enterprises","","CC","S","2026-10-30","","Tyra Sapelak","0829"],
+["263427","PS 22034","Unit B180 Door Repair",4,"Tradesmans Services","","V","S","2026-11-02","","Brandon Barber",""],
+["263428","PS 68204","Unit E528 Weather Stripping",4,"Parkinson Enterprises","","CC","","2026-11-02","","Brandon Barber","4386"],
+["263430","PS 22034","Unit B077 Door Repair",4,"Tradesmans Services","","V","S","2026-11-02","","Brandon Barber",""],
+["263431","PS 22034","Unit B056 Door Repair",4,"Tradesmans Services","","V","S","2026-11-02","","Brandon Barber",""],
+["263433","PS 68195","Unit 0258 Stuck Open",4,"Parkinson Enterprises","","V","S","2026-11-02","","Tyra Sapelak",""],
+["263435","PS 68200","Unit 0308 Springs",5,"Parkinson Enterprises","","CC","S","2026-11-02","","Tyra Sapelak","2440"],
+["263436","PS 08099","Unit 3003 Spring",4,"Parkinson Enterprises","","V","S","2026-11-02","","Tyra Sapelak","Vacant"],
+["263437","PS 68204","Unit B290 Spring",4,"Parkinson Enterprises","","V","S","2026-11-02","","Brandon Barber",""],
+["263439","PS 23902","RUD N49 and 727",3,"","","","","2026-11-02","","Jamie White",""],
+["263445","PS 08486","Unit 1041 Springs",4,"Parkinson Enterprises","","CC","S","2026-11-02","","Jeff Novak","4249"]
+];
+const SCOPE={"263445":"needs new springs. unable to open","260754": "I would swag this add $150 for SC to measure, $950 for door, $500 for Tom. add 30% Margin) submit proposal around $2200", "260955": "OFFLINE UNITS F310, N1129, N1133, R860 All units need new springs repair. All ready and set for repairs.", "261098": "Door needs to be replaced -10084, 10034, 10097, 10087, 10048 - Janus Silhoutte Grey - 10382 \u2013 color is sunset orange", "261421": "Unit 168: Door needs replaced, need measurements so we can order a new door for replacement.", "261482": "exterior buildings see recommended upgrade Overhead storage doors are in poor shape and need to be fully replaced Recommended: Remove and Replace 20 doors on unit A, 22 doors on unit B, 20 doors on unit C, 20 doors on unit D, 21 doors on unit E,19 doors on unit F, and 6 interior doors in the West climate-controlled building. Qty: 128 SqFt/LnFt: ea", "261652": "Unit 4121 broken spring. Customer does not want a Davinci lock and is wary of access to his unit. Requests vendor set appointment to meet him onsite. Spring replacement needed.", "261671": "C156 customer unit needs repaired. Key is in the office and ready for repairs", "261865": "Fix or replace pier", "261867": "F07 Springs are broken or loose on the garage door - the door goes all the way up when open and takes a lot of effort to roll down and then when you get it halfway down if you let go it rolls back up quickly", "261870": "(Occupied No Key On File) Customer states door is extremely hard to open and has been that way for months. Needs to be looked at ASAP. Likely spring/track issue.", "261932": "(occupied) Customer unit door 280 off hinges, customer claims door shut very hard and popped off hinges. Possible spring may be broke on unit door as well.", "261982": "Unit door 1024 (Vacant) is damaged and off track; latch needs repair. Track fix needed.", "262149": "Both of these units were hit.  4021 needs a new door.  Huge cut in the metal.  Size is 8'8\" wide x 9' tall", "262214": "Spring replacement on 3 occupied units: 615, 124B, and 517/518. Keys are in the office; property does not have combo locks yet.", "262460": "(Occupied Key on file) This Unit door will no longer open remain open by itself. The tenant must use something to prop it open, and it appears to have a \"catch\" in the track where the tenant must pull harder on the door to close it.", "262469": "Resubmitting work order for doors A011 A020 B059 C088 D139 D152.", "262477": "i have a leak in unit 5314 that leaks inside the unit as well as on the outside of the unit.....i also have a leak outside of unit 5504", "262490": "2 hasps need to be replaced, and one roll up door is coming off the tracks, making it extremely hard to open and even harder to close. One hasp is a 4-bolt hasp and one the loop kinds. Please give us a date at least a few days ahead of time. Tenant wants to bring us her key that day.", "262551": "722a Customer stated it is hard to get the unit door to open and close 254b the spring is broken the customer isn't able to get in her unit with out it closing on her she goes in her unit almost daily and it is hard on her to get it open she would like it done asap", "262554": "(Vacant) Unit 4133Door is off track", "262562": "Unit 0131 and Unit 0157", "262563": "(Occupied) Unit A010 Spring is broken on the door, on left side. Door already had one spring repaired, but other side broken.", "262569": "(Occupied No Key) Unit 563A Door comes up about 2 inches and gets stuck.", "262575": "Unit 0721A (Vacant) Hasp/potential replacement", "262612": "Cube door is very difficult to open", "262618": "(Occupied) Unit 0907 wont open spring issue. Confirmed Key in Office", "262619": "(Vacant) Unit 1106 Off track and hasp is really short", "262634": "Unit 051 (Occupied) No key on file", "262692": "Unit 0125 (Vacant) door will not open", "262698": "Door looks like it has been pushed in somehow and is off track in one corner", "262718": "Right spring snapped needs replacement we have springs on site (Request dover door company if applicable)", "262722": "four doors that need new weather stripping installed, I have an emergency exit sign that we need replaced, and two old small keypads we'd like removed and the wall patched. Can either or both of those get us to that goal?", "262725": "(Occupied Combo Code: 2450) Unit door is more than likely broken due to spring or wires holding up the door. \nNo Key needed on unit door code needed to repair", "262730": "Customer unit P1015 has a broken spring that needs repaired. Key is in the office unit is ready for repairs. J543, M761, R812 these 3 units also need new springs. Units are unlocked and ready for repairs.", "262754": "Unit 0605A2 Door 0605 (Occupied) key on site. The door is extremely difficult to open and close. Appears to catch on both sides and does not roll evenly. Lubrication on springs, axle, and rails did not help. Tenant unable to access unit independently. Rental office has key to lock for vendor evaluation, manager must be present.", "262762": "Unit 0519 (Vacant) Door is a hazard and Janus states it needs to be measured for a full replacement", "262769": "Unit doors that need spring repair.  10421 Have key  10032  Unit doors that need hasp & handle repairs.  10421  10354  10488  10574  10510  Heavy Doors & Spring repair.  10191  10466  10470  10471  10472. (10421 no key  10574 no key  All others are vacant)", "262792": "We had a break in. They ripped open the unit door and cute the fence line in two different places.", "262801": "Replace unit door - 4325 Page Ave, Michigan Center, MI 49254", "262835": "It is off the track AND the springs need to be adjust or changed out.", "262873": "8x7'2\"", "262877": "Unit 2040  Door will not go any lower than what it is in the picture, about half way.", "262882": ": James asked me to re-enter these on one work order 462A 10*30 door is of track and needs to be centered to work properly 359A 10*20 Door needs a spring and will not stay open 321A 10*10 door needs to be repaired will not open 129A 10*20 door is off track and will not work. 131A 10*20 door is off track and will not work. 132A 10*20 door is off track and will not work. A210 5*10 door is off track and will not work springwise is the vendor for the account", "262895": "Unit 1A09- Door frozen shut and will not open. Key is on file in back break room lock box.", "262935": "Unit 5009 (occupied Code:4626)", "262966": "(Vacant) Unit 614A. Spring Replacement. Door stuck closed.", "262971": "Needs proposal for unit 815 door spring needs to be adjusted. The door is stuck in position and unable to be moved safely. No visible signs of broken cables or bent springs. This is an outside drive-up unit door located in the 800's building in the back right of the property.", "262985": "wall and left door track appear to be hit. Needs new track and metal wall repair.", "262986": "Unit door is off tracks.", "262987": "Units- 213214 and 633 needs hasps  Units 161, 111, 411A, 574AB- needs springs are are occupied units. Units 133. 146B, 219220, 324, 336, 408B, 529, 563, 414B, 422A,576AB, 592AB, 708A, 640A, 636A, 664A, 664B and 643 need spring replacements. 317318, 377378, 385386 need 4 springs per unit", "262997": "Customer door only rolls half way up, need immediate repair   Combination Code 1408", "262998": "(Vacant) Door came slamming down when I went to stage it. Think the Spring went on it.", "263001": "(Vacant) C005 door springs are broke doors fall back down on you.  not safe!!", "263002": "door spring is broke  have to force door open slams back down , rented for commercial  company", "263019": "N32, G09, C45, G25, J09, C52 all need new doors or springs or latches or all of the above. Definitely need a door specialist here asap", "263039": "Unit L006 (Vacant). 24 hour access unit. Door is off the track and the hasp needs to be replaced. No lock on the door.", "263040": "Four units need relocated within the same facility. Unit 105 is 10x10 in size. Unit 106 is 10x15 in size. Unit 107 is 10x10 in size. Unit 147 is 10x20 in size. We do not have pictures or know what each unit contains.", "263043": "Unit G 48 This door was damaged prior to Devon by a police search warrant. The hasp was cut away from the door and bent out. Door needs replaced.", "263046": "15 units have springs that need replacing.  Some units are missing unit numbers, please see office manager if you cannot find them. Units are: C347, D538, D545, D549, D551, D552, E660, E665, E667, E685, E688, E690, E697, E701, E717", "263059": "Spring and hasp replacement unit 5344", "263064": "pring hardware needs to be secured to frame inside unit 413. Unit is occupied, I have keys in office, tennant would like to be on site when work is being done.", "263095": "We have 4 units here that need spring replacements. All units are unlocked and ready for repairs. Units. A20, E276. J517. J57678.", "263102": "The roll up door spring in unit 109 is broken and needs replacement. The door is currently stuck in the open position. The weather seal is also damaged and requires attention. This is a customer storage unit, and the customer has been transferred to another unit of the same size.", "263104": "Unit door jammed, unable to open", "263111": "(Occupied) Unit B021 The chain came off the Door and the Door will not open,  I did get it pulled down,   Lock Code: 6429", "263113": "Unit 0145 (Vacant) and Unit 0456 (Vacant) both have a broken spring", "263114": "(Vacant) Unit 6066 Spring Replacement.", "263122": "Unit 6075- Unit door needs door seal replacement. Customer declined to put key on file. DM is working with customer . Please message when vendor is heading and renter is willing to sit and meet them there. We tried a combo lock already.", "263124": "1022B - double door unit - door on the drive aisle side needs to be realigned and repaired. The door is unlocked - no combo code needed to enter.", "263125": "Unit 301 (Occupied) the cylinder lock was cut and there is a damaged hasp, the sliding piece was broke in half and door won't open", "263128": "(No Lock) Unit door is stuck closed. Customer has removed the lock on the space for maintenance.", "263158": "Unit D003 (Vacant) Door is hard to open. When opening the door comes of track. Address is \t6530 Urbana Rd, Springfield, OH 45502", "263164": "Units 1849, 1833, 1832, 1742, and 1748 (All vacant). Address is \t7888 Wildcat Rd, Huber Heights, OH 45424. Doors are off track and damaged and dented", "263165": "unit door is stuck open.  It is probably a spring issue.  I will prewarn, these are VERY OLD doors.   Unit B063.  If your new guy is interested.", "263192": "hasp is broken off", "263195": "Unit 2164 Door will not stay up, instantly starts closing when you let go of it no matter what you do.", "263202": "157 (Combo: 2443) 423B (Combo: 7064)  These units are scheduled for auction on 10/23 - we need to have these springs fixed ASAP so we can inventory the spaces.", "263218": "door to unit on 0575 side is completely off track and unable to be reseated by PM.", "263220": "1024 - hasp needs to be replaced on this door - this is a special hasp (please view pictures)  226 - door replacement needed - please take measurements & submit a change order for this w/o to replace the door  514 - tape up hanging insulation from the ceiling", "263223": "(Vacant) Unit 2008 Spring", "263250": "Unit 0157 (Occupied) needs one new spring. Combo code is 3443", "263258": "The cylinder hasp is stuck  half open. We can not open the door nor move the sliding part of the hasp. **Unable to secure, no lock", "263259": "056 - cylinder hasp is broken and cannot be removed by staff, needs a replacement hasp 2040 - cylinder hasp is broken and cannot be removed by staff, needs a replacement hasp **Vacant units, hasps prevent us from securing - not locked", "263266": "The Hasp on the door has slid off and needs to be replaced . Unit is currently secured with Davinci lock the code : 8008", "263280": "(vacant) Unit 5065 spring", "263283": "Vacant units - unsecured NO LOCKS 1. 631: Door off track and keeps popping out on the bottom left (image attached) 2. 765766: 766 springs broken (standard roll up door 8ft)", "263288": "Doors for units A009, E186, and E210 are off track and likely also need new springs.", "263305": "(Vacant) Unit 918 is getting stuck and not rolling properly.", "263314": "(ALL VACANT) units 1234, 0841, 0825 all need door realignment and unit 2119-door won't open. Unit 0312, 1240, 1216, 1126, and 0711 need hasps replaced/repaired", "263316": "Unit 4076 has something in the unit preventing the door from being opened more than a few inches. Currently coordinating with customer to have customer out here when vendor comes to remove the door from the unit.", "263318": "Unit #0039 Spring Broken unit door stuck in closed position  no lock on unit  *70337254#", "263319": "Unit D090- No combo lock, unit cannot be secured, see picture. Details below.  Customer broke their unit door when trying to get into it to vacate the unit. The door is off tracks, bent, the hasp is bent and damaged. Also they left the lock on the unit.  No Combo lock on the unit and the door is off track and dented in so the unit cannot be secured. I cut the disc lock off.", "263321": "unit# 0541 customer: Patrice Young Divinci Lock# 22T21889 Divinci Lock Combo 0829 The spring on the door is broken and needs replaced.", "263322": "the track for the roll-up door on the left side is unattached from the wall as well as the bracket that holds the door when it's rolled up. it needs to be re-attached to the wall. Joe took his lock with him and Divinci lock # 97L971L4 with combination 7459 is on the unit so maintenance can access the unit to fix it.", "263323": "the bracket on the right side of the 517 door that holds up the door when it is rolled up has mostly become unattached from the wall and is in danger of falling and needs to be repaired to make the unit rentable again.", "263326": "Unit 0846 - Door spring is broken, door hard to open. Not locked. Unit 0530 - Door is stuck closed. Not locked. Unit 0611 - Spring broken, hard to open. Not locked.", "263337": "Unit 93 that will not stay open as if the springs are missing or broken.  Door rolls up and then falls to the ground.  If you need a picture I can get it for you.", "263339": "Unit 438B Spring replacement.  Lock Code: 6517", "263344": "Unit J398 (Vacant) Can\u2019t get door closed, possible broken spring. Gate code is *658918#", "263347": "Unit E541 (Occupied) The hasp is bent in a way that prevents the door from being opened. There is no lock on door. Need hasp replaced. Unit B208 (Occupied) Door offtrack and hasps need fixed an/ or replaced, no lock on door", "263349": "The unit doors are hard to open, hanging on inside, or keep coming off track. Units: 0318 (Vacant). 0312 (Occupied) Combo code 6020. Unit 0322 (Occupied) Combo code 9365", "263357": "Unit 336 (Occupied) and Unit 340 (Vacant) - Both most likely have broken springs", "263358": "Unit A1002 (Vacant) The roll up door to unit spring is broken. door is extremely hard to open", "263367": "Unit 0612 (Vacant). Door wont open or close", "263374": "Unit 329D (Vacant) has possibly a broken spring and Unit 825L (Vacant) is off track", "263378": "Unit C038 - door is off track Unit D016 - Springs are broken. We have key on file to access unit", "263379": "Door is hard to slide up and down. Seems like it doesn\u2019t want to move at times", "263391": "Unit K011 (Occupied) The weather strip is broke off the top of the unit door and is allowing water and moisture into the unit", "263392": "Hasp missing possible new door", "263394": "door need springs heavy There is no lock on this unit", "263395": "Unit 1632 (Vacant) Broken spring", "263396": "Unit 1305 (Vacant) Broken spring", "263397": "Unit 009 (Vacant) Door off track, door gets stuck open/closed and swings in/out", "263407": "Unit 116A (Occupied) Combo code: 198496", "263408": "Unit 5037 Weather strip is very rusty where the left handle is.", "263410": "Unit 119A (Vacant) Door is very hard to open", "263412": "Unit 0501- Combo 7806 Unit 0612- Combo 8326 Unit 0706- Combo 4590 Unit 0733- Combo 5466 Unit 0821- Combo 3291", "263413": "Lock Codes: (518: 2947) (615: 1425) (124B: 1812) (722: 2152)", "263419": "Springs in the Following units should be replaced B2U94, B2U71, B2U52 and B3U40", "263426": "unit: 0541 acct: 67004474 davinci lock: 22t21889 combination: 0829", "263427": "(Vacant) Unit B180 Door Wont Stay Up", "263428": "Weather stripping at bottom of the door needs to be replaced code to lock  4386", "263430": "(vacant) Unit B077 door does not stay up", "263431": "(Vacant) Door does not stay up and may need new spring.", "263433": "(vacant) The unit 0258 door is stuck open , its currently hard to close . Unit is Vacant with no lock on as its stuck open at this time .", "263435": "Broken Spring Needs Replaced customer: michael rose unit: 0308 acct: 67004745 davinci lock: 2t42prp8 combinatin: 2440", "263436": "Unit 3003 needs spring replacement, unit vacant unsecured", "263437": "Door spring needs to be fixed", "263439": "Unit N49- 10x30- Door won\u2019t roll freely- packing material to the door appears to be rolled up inside which is causing the issue. Unit727- 10x15- Door won\u2019t roll freely- insulation in ceiling falling and hitting the door.", "263445": "needs new springs. unable to open"};
+// Spring inventory: [site, unit, size in inches, note] (from Spring_Sizes_by_Unit.xlsx)
+const SPRINGS=[["07034","B017",7,""],["07034","E028",6,""],["07034","C008",8,""],["07034","E065",6,""],["07034","C010",8,""],["07034","B012",7,""],["07107","E001",16,""],["08085","5058",16,""],["08088","3020",14,""],["08088","4035",14,""],["08088","4018",14,""],["08090","3030",12,"Drum"],["08094","4044",13,""],["08094","6003",14,""],["08098","0845",8,"Hand-written as G845 on one page"],["08098","0607",8,""],["08098","0409",6,"Read as 0407 on one page"],["08098","0307",8,""],["08098","207",8,""],["08098","216",8,""],["08098","629",10,""],["08098","515",8,""],["08099","3027",16,"Two springs: 16\" + 13\""],["08099","3027",13,"Two springs: 16\" + 13\""],["08099","3011",16,""],["08193","0835B",12,""],["08232","6058",16,""],["08261","0428",6,""],["08261","0827",12,""],["08261","822",8,""],["08261","444",8,""],["08261","312",8,""],["08261","0810",8,""],["08261","0668",8,""],["08261","0733",10,""],["08264","D437",13,""],["08264","A118",13,""],["08373","3020",10,""],["08373","3049",10,""],["08486","4051",10,""],["08486","4005",8.5,""],["08486","6001",12,"Unit # rewritten under a crossed-out one"],["22328","C051",9,""],["23416","G047",12,""],["23416","D014",12,""],["23416","D040",11,""],["23606","C19",12,""],["23606","C0008",11,""],["26421","E032",10,""],["26421","B056",10,""],["26814","D051",16.5,""],["29124","1002",8,""],["62830","1224",10,""],["68187","56314",10,""],["68193","0204A",12,"Written 68193 on this page (08193 on an earlier one) - confirm"],["68193","0204B",13,""],["68195","535B",9,""],["68195","498",9,""],["68196","1001",11,"Cable door"],["68196","1047A",11,"Cable door"],["68197","0811C",6,""],["68197","0806A",9.5,""],["68197","206",12,"Cable garage door"],["68200","0518",16,""],["68204","B205",12,""],["68204","D404",16,""],["68204","A150",7,""],["68221","934",10,""],["68222","329",8.5,""],["68222","606",8.5,""],["68429","218",8.5,""],["68429","331",8.5,""],["77730","0017",10,""],["77730","0212",10,""],["77730","222",10,""],["77731","01064",10,""],["77731","0409",14,"Prefix written PSS - assumed PS"],["77731","720",8,""],["AXS11373","C2",10,""],["DSS4279","C156",10,""],["DSS4279","Q920",10,"Unit could be 0920"],["DSS9278","B29",8.5,""],["DSS9278","H12",8.5,""],["DSS9278","D31",9,""],["DSS9278","F2B27",9,""],["DSS9278","H32",9,""],["DSS9278","H38",9,""],["DSS9280","521",10,""],["DSS9280","204",10,""],["DSS9280","259",10,"Site written as 4280 - assumed 9280"],["DSS9280","323",10,""],["DSS9283","662",11,""],["DSS9283","669",11,"Possibly 660 - smudged on one page"],["DSS9288","212",9,"Site # written over a crossed-out 08251"],["MP1399","D72",14,""],["MP1399","G336",14,""],["MP1399","A41",14,"Unit # rewritten under a crossed-out one"],["MP1399","A42",14,""],["MP1399","Q08",14,"Unit could be G08"],["MP5235","10492",10,""],["MP5235","10667",8,""],["MP5235","10688",8,""],["MP5235","10474",10,""]];
+const OWN={"260754":"WO-260407-00761","260955":"RM-9279-2026-0013","261421":"9282-AM2026-1859","261448":"353517083.0","261482":"9287-AM2026-1921","261652":"WO-260623-00576","261671":"RM-9279-2026-0024","261865":"Email","261867":"RM-9121-2026-0019","261870":"WO-260714-00193","261932":"RM-9280-2026-0013","261982":"WO-260727-00147","262149":"Email","262214":"WO-260805-00669","262460":"RM-9286-2026-0502","262463":"WO-260827-00916","262469":"361730860.0","262477":"RM-9285-2026-0503","262490":"RM-9281-2026-0510","262551":"WO-260903-00450","262554":"WO-260907-00474","262562":"WO-260904-00704","262563":"WO-260904-00631","262569":"WO-260904-00597","262575":"WO-260904-00530","262612":"363517011","262618":"WO-260911-00740","262619":"WO-260911-00655","262634":"WO-260728-01203","262692":"WO-260915-00407","262698":"363777755","262718":"364060282","262722":"Email","262725":"WO-260918-02076","262730":"RM-9279-2026-0503","262754":"WO-260921-01668","262762":"WO-260922-00596","262769":"Email","262792":"Email","262801":"Email Noah","262835":"365036087.0","262873":"WO-261022-00394","262877":"365248589","262882":"RM-9172-2026-0504","262895":"WO-260930-00225","262935":"WO-261002-00443","262966":"WO-261005-00353","262971":"1000133","262985":"WO-261006-00216","262986":"WO-261006-00210","262987":"WO-260904-01041","262997":"WO-261006-00609","262998":"WO-261006-00525","263001":"WO-261006-00511","263002":"WO-261006-00509","263019":"RM-9281-2026-0514","263039":"WO-261008-00239","263040":"366342658.0","263043":"RM-9286-2026-0506","263046":"RM-9283-2026-0511","263059":"WO-261009-00268","263064":"366625489.0","263095":"RM-9279-2026-0504","263102":"1000232","263104":"WO-261013-00335","263111":"WO-261012-00224","263113":"WO-261013-00712","263114":"WO-261013-00744","263122":"WO-261013-00865","263124":"WO-261013-01047","263125":"WO-261013-01029","263128":"WO-261014-00007","263158":"WO-261014-00945","263164":"WO-261014-01054","263165":"Email","263192":"WO-261016-00069","263195":"WO-261016-00260","263202":"WO-261016-01210","263218":"WO-261019-02011","263220":"WO-261019-02109","263223":"WO-261019-02299","263250":"WO-261010-00202","263258":"WO-261021-01455","263259":"WO-261021-01447","263266":"WO-261023-00069","263280":"WO-261023-00284","263283":"WO-261022-00787","263288":"367919738.0","263305":"WO-261026-00383","263314":"WO-261026-00532","263316":"347271007","263318":"WO-261026-00945","263319":"WO-261026-01127","263321":"WO-261027-00096","263322":"WO-261026-01415","263323":"WO-261026-01414","263326":"WO-261027-00080","263337":"Email","263339":"WO-261027-00390","263344":"WO-261027-00649","263347":"WO-261027-00726","263349":"WO-261027-00673","263357":"WO-261027-00929","263367":"WO-261027-00970","263374":"WO-261028-00648","263378":"WO-261028-00580","263379":"WO-261024-00050","263391":"WO-261014-00904","263392":"WO-260904-00530","263393":"368339011","263394":"WO-261029-00216","263395":"WO-261029-00321","263396":"WO-261029-00330","263397":"WO-261029-00354","263407":"WO-261029-00435","263408":"WO-261030-00231","263410":"WO-261029-00372","263412":"WO-261026-00886","263413":"WO-261027-00398","263419":"364888730","263426":"WO-261030-00590","263427":"WO-261102-00133","263428":"WO-261102-00134","263430":"WO-261102-00132","263431":"WO-261030-00602","263433":"WO-261030-01188","263435":"WO-261030-01186","263436":"WO-261030-01185","263437":"WO-261030-00603","263439":"WO-261102-00453","263445":"WO-261102-00711"};
+const PMS={"260754":"Connor Thomas","260955":"Connor Thomas","261098":"Adam Houston","261421":"Connor Thomas","261448":"Connor Thomas","261482":"Adam Houston","261652":"Zak Kranich","261671":"Connor Thomas","261865":"Zak Kranich","261867":"Zak Kranich","261870":"Zak Kranich","261932":"Zak Kranich","261982":"Zak Kranich","262149":"Zak Kranich","262214":"Zak Kranich","262460":"Connor Thomas","262463":"Zak Kranich","262469":"Zak Kranich","262477":"Connor Thomas","262490":"Zak Kranich","262551":"Zak Kranich","262554":"Zak Kranich","262562":"Connor Thomas","262563":"Zak Kranich","262569":"Zak Kranich","262575":"Zak Kranich","262612":"Bobby Kearney","262618":"Zak Kranich","262619":"Zak Kranich","262634":"Connor Thomas","262692":"Connor Thomas","262698":"Bobby Kearney","262718":"Zak Kranich","262722":"Connor Thomas","262725":"Zak Kranich","262730":"Zak Kranich","262754":"Connor Thomas","262762":"Connor Thomas","262769":"Zak Kranich","262792":"Bobby Kearney","262801":"Connor Thomas","262835":"Zak Kranich","262873":"Bobby Kearney","262877":"Bobby Kearney","262882":"Bobby Kearney","262895":"Zak Kranich","262935":"Zak Kranich","262966":"Zak Kranich","262971":"Bobby Kearney","262985":"Bobby Kearney","262986":"Bobby Kearney","262987":"Zak Kranich","262997":"Zak Kranich","262998":"Zak Kranich","263001":"Zak Kranich","263002":"Zak Kranich","263019":"Zak Kranich","263039":"Connor Thomas","263040":"Connor Thomas","263043":"Zak Kranich","263046":"Zak Kranich","263059":"Zak Kranich","263064":"Connor Thomas","263095":"Zak Kranich","263102":"Bobby Kearney","263104":"Zak Kranich","263111":"Zak Kranich","263113":"Connor Thomas","263114":"Zak Kranich","263122":"Zak Kranich","263124":"Zak Kranich","263125":"Connor Thomas","263128":"Zak Kranich","263158":"Connor Thomas","263164":"Connor Thomas","263165":"Connor Thomas","263192":"Zak Kranich","263195":"Zak Kranich","263202":"Zak Kranich","263218":"Zak Kranich","263220":"Zak Kranich","263223":"Zak Kranich","263250":"Connor Thomas","263258":"Zak Kranich","263259":"Zak Kranich","263266":"Zak Kranich","263280":"Zak Kranich","263283":"Zak Kranich","263288":"Zak Kranich","263305":"Zak Kranich","263314":"Connor Thomas","263316":"Bobby Kearney","263318":"Zak Kranich","263319":"Zak Kranich","263321":"Zak Kranich","263322":"Zak Kranich","263323":"Zak Kranich","263326":"Zak Kranich","263337":"Bobby Kearney","263339":"Zak Kranich","263344":"Connor Thomas","263347":"Connor Thomas","263349":"Connor Thomas","263357":"Connor Thomas","263358":"Connor Thomas","263367":"Connor Thomas","263374":"Connor Thomas","263378":"Bobby Kearney","263379":"Bobby Kearney","263391":"Connor Thomas","263392":"Zak Kranich","263393":"Bobby Kearney","263394":"Zak Kranich","263395":"Connor Thomas","263396":"Connor Thomas","263397":"Connor Thomas","263407":"Connor Thomas","263408":"Zak Kranich","263410":"Connor Thomas","263412":"Zak Kranich","263413":"Zak Kranich","263419":"Bobby Kearney","263426":"Zak Kranich","263427":"Zak Kranich","263428":"Zak Kranich","263430":"Zak Kranich","263431":"Zak Kranich","263433":"Zak Kranich","263435":"Zak Kranich","263436":"Zak Kranich","263437":"Zak Kranich","263439":"Bobby Kearney","263445":"Zak Kranich"};
+const ADDRS={"260754":"20080 Allen Road, Trenton, MI, 48183","260955":"24985 Haggerty Rd, Novi, MI 48375","261098":"5235 S Merriman Rd, Westland, MI 48186","261421":"2333 S State St, Ann Arbor, MI 48104","261448":"201 Squires Dr., Milan, MI, 48160","261482":"2591 Jolly Rd, Okemos, MI 48864","261652":"36260 Van Dyke Ave, Sterling Heights, MI 48312","261671":"24985 Haggerty Rd, Novi, MI 48375","261865":"4115 36th Street South East, Kentwood, MI, 49512","261867":"5099 Division Avenue S. Grand Rapids, MI 49548","261870":"41889 Joy Road, Canton, MI, 48187","261932":"39205 Ford Rd, Westland, MI 48185","261982":"20080 Allen Road, Trenton, MI, 48183","262149":"2500 E 10 Mile Road, Warren, MI, 48091","262214":"24500 Sinacola Ct, Farmington Hills, MI 48335","262460":"533 36th St. SW, Wyoming, MI 49509","262463":"4115 36th Street South East, Kentwood, MI, 49512","262469":"201 Squires Dr., Milan, MI, 48160","262477":"1236 Ball Ave NE, Grand Rapids, MI, 49505","262490":"521 Tyler Rd, Ypsilanti, MI 48198","262551":"15301 Seaway Dr. Taylor MI 48180","262554":"45229 Michigan Ave, Canton, MI, 48188","262562":"7454 Liberty Way, West Chester, OH, 45069","262563":"5060 Coolidge Highway, Royal Oak, MI, 48073","262569":"36260 Van Dyke Ave, Sterling Heights, MI 48312","262575":"44650 Romeo Plank Rd, Clinton Township, MI 48038","262612":"319 Parker St., Springfield, MA, 01129","262618":"41250 Garfield Rd, Clinton Township, MI 48038","262619":"32775 Groesbeck Hwy, Fraser, MI,48026","262634":"7150 Cincinnati Dayton Rd., Liberty Township, OH, 45044","262692":"4820 Trinity Church Rd. Dayton, OH 45415-3200","262698":"319 Parker St., Springfield, MA, 01129","262718":"3828 Bay Rd, Saginaw, MI 48603","262722":"949 4-Mile Rd. NW Grand Rapids 49544","262725":"15390 E 12 Mile Rd, Roseville, MI 48066","262730":"24985 Haggerty Rd, Novi, MI 48375","262754":"4015 E Miami River Rd. Cleves OH 45002","262762":"4015 E Miami River Rd. Cleves OH 45002","262769":"5235 S Merriman Rd, Westland, MI 48186","262792":"7571 Ridge Ave, Philadelphia, PA 19128","262801":"#NO MATCH","262835":"1901 E Ellsworth Rd, Ann Arbor, MI 48108","262873":"2977 MacArthur Road, Whitehall, PA 18052","262877":"319 Parker St., Springfield, MA, 01129","262882":"75 Browns Lane Middletown, RI, 02842","262895":"2325 South Dort Highway, Flint, MI, 48507","262935":"41889 Joy Road, Canton, MI, 48187","262966":"24500 Sinacola Ct, Farmington Hills, MI 48335","262971":"4309 Ehrlich Rd. Tampa, FL 33624","262985":"1431 Ivy Hill Road, Philadelphia, PA 19150","262986":"7000 Lindbergh Blvd, Philadelphia, PA 19153","262987":"15301 Seaway Dr. Taylor MI 48180","262997":"5060 Coolidge Highway, Royal Oak, MI, 48073","262998":"111 S Groesbeck Hwy, Mt Clemens, MI 48043","263001":"31505 Groesbeck Hwy, Fraser, MI 48026","263002":"41250 Garfield Rd, Clinton Township, MI 48038","263019":"521 Tyler Rd, Ypsilanti, MI 48198","263039":"7353 Dixie Highway, Fairfield, OH, 45014","263040":"3401 Robinson Rd, Arnold, MO, 63010","263043":"533 36th St. SW, Wyoming, MI 49509","263046":"3870 Jackson Rd, Ann Arbor, MI 48103","263059":"45229 Michigan Ave, Canton, MI, 48188","263064":"5440 S Marginal Rd. Cleveland, Ohio 44114","263095":"24985 Haggerty Rd, Novi, MI 48375","263102":"10522 State Road 52 Hudson, FL 34669","263104":"2325 South Dort Highway, Flint, MI, 48507","263111":"47887 Michigan Ave, Canton, MI, 48188","263113":"8691 Dayton-Cin. Pike, Miamisburg, OH, 45342","263114":"36001 Warren Rd, Westland, MI, 48185","263122":"5180 S Dort Hwy, Flint, MI, 48507","263124":"28650 Grand River Ave, Farmington Hills, MI 48336","263125":"5201 Dixie Highway, Fairfield, OH 45014","263128":"3425 S Saginaw St, Burton, MI, 48529","263158":"#NO MATCH","263164":"#NO MATCH","263165":"1717 W 31st St, Lawrence, KS, 66046","263192":"4040 Lapeer Road, Auburn Hills, MI, 48326","263195":"30340 Gratiot Ave, Roseville, MI 48066","263202":"15301 Seaway Dr. Taylor MI 48180","263218":"36261 Groesbeck Hwy, Clinton Township, MI 48035","263220":"20080 Allen Road, Trenton, MI, 48183","263223":"41889 Joy Road, Canton, MI, 48187","263250":"7454 Liberty Way, West Chester, OH, 45069","263258":"24920 Trowbridge St, Dearborn, MI, 48124","263259":"24920 Trowbridge St, Dearborn, MI, 48124","263266":"2500 S Industrial Hwy, Ann Arbor, MI, 48104","263280":"41889 Joy Road, Canton, MI, 48187","263283":"24579 Ann Arbor Trl, Dearborn Heights, MI 48127","263288":"201 Squires Dr., Milan, MI, 48160","263305":"20080 Allen Road, Trenton, MI, 48183","263314":"2201 Moellering Ave. Cincinnati OH 45214","263316":"34 Sanborn St., Gardner, MA, 01440","263318":"3425 S Saginaw St, Burton, MI, 48529","263319":"31505 Groesbeck Hwy, Fraser, MI 48026","263321":"1782 Pontiac Dr. Sylvan Lake MI 48320","263322":"1096 Doris Rd, Auburn Hills, MI 48326-2613","263323":"1096 Doris Rd, Auburn Hills, MI 48326-2613","263326":"4040 Lapeer Road, Auburn Hills, MI, 48326","263337":"1134 Universal Rd, Pittsburgh, PA 15235","263339":"24500 Sinacola Ct, Farmington Hills, MI 48335","263344":"7866 Tanners Lane, Florence, KY, 41042","263347":"4070 Mt Carmel Tobasco Rd Cincinnati, OH, 45255","263349":"4725 Madison Rd. Cincinnati OH 45227","263357":"6068 Branch Hill-Guinea Pike, Milford, OH 45150","263367":"2140 Stapleton Ct, Cincinnati, OH 45240","263374":"6128 Pleasant Ave. Fairfield OH 45014","263378":"7571 Ridge Ave, Philadelphia, PA 19128","263379":"1431 Ivy Hill Road, Philadelphia, PA 19150","263391":"601 W Leffel Lane, Springfield, OH 45506","263392":"44650 Romeo Plank Rd, Clinton Township, MI 48038","263393":"193 Litchfield St., Leominster, MA , 01453","263394":"20080 Allen Road, Trenton, MI, 48183","263395":"9805 Wilkens Blvd, Mason, OH 45040","263396":"9805 Wilkens Blvd, Mason, OH 45040","263397":"7150 Cincinnati Dayton Rd., Liberty Township, OH, 45044","263407":"6128 Pleasant Ave. Fairfield OH 45014","263408":"45229 Michigan Ave, Canton, MI, 48188","263410":"874 State Route 28 Milford OH 45150","263412":"111 S Groesbeck Hwy, Mt Clemens, MI 48043","263413":"24500 Sinacola Ct, Farmington Hills, MI 48335","263419":"50 Pit Rd., Turner, ME, 04282","263426":"1782 Pontiac Dr. Sylvan Lake MI 48320","263427":"4975 Clyde Park Ave SW, Wyoming, MI, 49509","263428":"30320 Beck Rd, Wixom, MI 48393","263430":"4975 Clyde Park Ave SW, Wyoming, MI, 49509","263431":"4975 Clyde Park Ave SW, Wyoming, MI, 49509","263433":"2570 Crooks Rd, Rochester Hills, MI 48309","263435":"1782 Pontiac Dr. Sylvan Lake MI 48320","263436":"5180 S Dort Hwy, Flint, MI, 48507","263437":"30320 Beck Rd, Wixom, MI 48393","263439":"1170 Mars-Evans City Rd, Mars, PA 16046","263445":"20200 Hall Road, Clinton Township, MI 48038"};
+const SITE_ALIAS={"DSS4279":"DSS9279"}; // sheet has C156 under DSS4279; the job is at DSS 9279
+// ---------- LOOKUPS ----------
+const STAGE={0:"On Hold",1:"Estimate",2:"Waiting on Quotes",3:"Owner Approval",4:"Buyout",5:"Do Work",6:"Pending NTE/CO",7:"Bill",8:"Job Complete"};
+const OCC={NK:"Occupied (No Key)",KF:"Occupied (Key on File)",CC:"Occupied Combo Code",V:"Vacant"};
+const RUD={S:"Spring",O:"Off Track",H:"Hasp",D:"Door Replacement"};
+const VSTEP={0:"Waiting for Approval",1:"Need Estimate",2:"Material Ordered",3:"Material Received",4:"Approved",5:"Scheduled",6:"Need Invoice",7:"Scheduled"};
+
+const TODAY=new Date(); TODAY.setHours(0,0,0,0);
+const $=id=>document.getElementById(id);
+const esc=s=>String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const parseD=s=>{if(!s)return null;const d=new Date(String(s).slice(0,10)+"T00:00:00");return isNaN(d)?null:d};
+const fmtD=d=>d?(d.getMonth()+1)+"/"+d.getDate():"";
+const normVendor=v=>/^janus$/i.test(v||"")?"Janus":(v||"");
+
+
+// ---------- SPRING HINTS ----------
+function siteKey(s){s=String(s||"").toUpperCase().replace(/\s+/g,"");if(s.startsWith("PS"))s=s.slice(2);return SITE_ALIAS[s]||s}
+const SP_BY_SITE={};
+SPRINGS.forEach(([site,unit,size,note])=>{const k=siteKey(site);(SP_BY_SITE[k]=SP_BY_SITE[k]||[]).push({unit,size,note})});
+const parseUnit=u=>{const m=String(u).toUpperCase().match(/^([A-Z]*)0*(\d+)([A-Z]?)$/);return m?{pre:m[1],num:parseInt(m[2],10),suf:m[3]}:null};
+const unitKey=u=>{const p=parseUnit(u);return p?p.pre+p.num+p.suf:String(u).toUpperCase()};
+const inch=n=>n+'"';
+function unitsInDesc(desc){
+  const out=[];
+  (String(desc).match(/[A-Za-z]{0,2}\d{1,5}[A-Za-z]?/g)||[]).forEach(t=>{
+    const p=parseUnit(t); if(!p)return;
+    const digits=String(t).replace(/\D/g,"");
+    if(digits.length<3&&!p.pre)return;            // skip counts like "15 units"
+    if(!out.includes(t))out.push(t);
+  });
+  return out;
+}
+function springHints(r){
+  const recs=SP_BY_SITE[siteKey(r.store)];
+  if(!recs)return {lines:[],site:"",none:true};
+  const lines=[];
+  unitsInDesc(r.desc).forEach(t=>{
+    const k=unitKey(t);
+    const exact=recs.filter(x=>unitKey(x.unit)===k);
+    if(exact.length){
+      lines.push({unit:t,text:exact.map(x=>inch(x.size)).join(" + ")+" on record"+(exact[0].note?" ("+exact[0].note+")":"")});
+      return;
+    }
+    const p=parseUnit(t); if(!p)return;
+    let best=null,bd=1e9,hits=[];
+    recs.forEach(x=>{const q=parseUnit(x.unit);if(!q||q.pre!==p.pre)return;const d=Math.abs(q.num-p.num);
+      if(d>10)return;if(d<bd){bd=d;hits=[x]}else if(d===bd)hits.push(x)});
+    if(hits.length)lines.push({unit:t,text:"likely "+[...new Set(hits.map(x=>inch(x.size)))].join(" or ")+" (nearby unit "+hits.map(x=>x.unit).join(", ")+")"});
+  });
+  const counts={};recs.forEach(x=>counts[x.size]=(counts[x.size]||0)+1);
+  const site=Object.keys(counts).map(Number).sort((a,b)=>a-b).map(s=>inch(s)+(counts[s]>1?" ×"+counts[s]:"")).join(", ");
+  return {lines,site,none:false,n:recs.length};
+}
+
+let DATA=[], state={stage:null};
+const OPEN=new Set();
+
+function fromSnap(r){
+  return {wo:r[0],store:r[1],desc:r[2],step:r[3],vendor:normVendor(r[4]),
+    vstep:r[5]===""?"":VSTEP[r[5]],occ:OCC[r[6]]||"",rud:RUD[r[7]]||"",
+    created:parseD(r[8]),start:parseD(r[9]),contact:r[10],combo:r[11],addr:ADDRS[r[0]]||"",owner:OWN[r[0]]||"",scope:SCOPE[r[0]]||"",rowId:null,pm:PMS[r[0]]||""};
+}
+function fromLive(sheet){
+  const col={};sheet.columns.forEach(c=>col[c.title]=c.id);
+  const out=[];
+  sheet.rows.forEach(row=>{
+    const m={};row.cells.forEach(c=>m[c.columnId]=c.displayValue!=null?c.displayValue:c.value);
+    const g=t=>{const v=m[col[t]];return v==null?"":String(v)};
+    if(g("Trade")!==TRADE_VALUE)return;
+    const ns=parseInt(g("Next Step"),10);
+    out.push({wo:g("Project No."),store:g("Store Code"),desc:g("Job Desc."),
+      step:isNaN(ns)?-1:ns,vendor:normVendor(g("Vendor")),
+      vstep:g("Vendor Next Step").replace(/^\d+\.\s*/,""),occ:g("Occupancy"),rud:g("RUD Issue"),
+      created:parseD(g("Created")),start:parseD(g("Start Work Date")),
+      contact:g("Customer_Nameonly"),combo:g("Combo Code").replace(/\.0$/,""),addr:g("Site Address"),scope:g("Scope Of work"),owner:g("Owners Proj. No.").replace(/\.0$/,""),rowId:row.id,pm:g("PM - Name Only")||g("PM")});
+  });
+  return out;
+}
+function age(r){return r.created?Math.round((TODAY-r.created)/864e5):0}
+function flags(r){
+  const f=[],a=age(r);
+  if((r.step===4||r.step===5)&&!r.vendor)f.push("No vendor");
+  if(r.step===5&&!r.start)f.push("No start date");
+  if(r.step===5&&r.start&&r.start<TODAY)f.push("Start date passed");
+  if(r.step===3&&a>21)f.push("Waiting on approval "+a+"d");
+  if(r.step===4&&a>7)f.push("In buyout "+a+"d");
+  if(r.step===1&&a>5)f.push("Estimate "+a+"d");
+  return f;
+}
+
+function fillSelect(el,label,vals){
+  const cur=el.value;
+  el.innerHTML='<option value="">'+label+'</option>'+vals.map(v=>'<option>'+esc(v)+'</option>').join("");
+  if(vals.includes(cur))el.value=cur;
+}
+function buildFilters(){
+  const u=k=>[...new Set(DATA.map(r=>r[k]).filter(Boolean))].sort();
+  fillSelect($("fPm"),"All PMs",u("pm"));
+  fillSelect($("fVendor"),"All vendors",u("vendor"));
+  fillSelect($("fOcc"),"Any access",u("occ"));
+  fillSelect($("fRud"),"Any issue",u("rud"));
+}
+function filtered(ignoreStage){
+  const q=$("q").value.trim().toLowerCase(),pmF=$("fPm").value,v=$("fVendor").value,o=$("fOcc").value,i=$("fRud").value,a=$("fAttn").checked;
+  return DATA.filter(r=>{
+    if(!ignoreStage&&state.stage!==null&&r.step!==state.stage)return false;
+    if(pmF&&r.pm!==pmF)return false;
+    if(v&&r.vendor!==v)return false;
+    if(o&&r.occ!==o)return false;
+    if(i&&r.rud!==i)return false;
+    if(a&&!flags(r).length)return false;
+    if(q&&!(r.wo+" "+r.store+" "+r.desc+" "+r.vendor+" "+r.contact+" "+r.addr+" "+r.pm).toLowerCase().includes(q))return false;
+    return true;
+  });
+}
+function renderTiles(){
+  const base=filtered(true);
+  const counts={};base.forEach(r=>counts[r.step]=(counts[r.step]||0)+1);
+  const attn=base.filter(r=>flags(r).length).length;
+  const stages=[...new Set(DATA.map(r=>r.step))].sort((a,b)=>a-b);
+  let h='<button class="tile'+(state.stage===null?' on':'')+'" data-s="all"><div class="n">'+base.length+'</div><div class="l">All open</div></button>';
+  stages.forEach(s=>{h+='<button class="tile'+(state.stage===s?' on':'')+'" data-s="'+s+'"><div class="n">'+(counts[s]||0)+'</div><div class="l">'+esc(STAGE[s]||"Other")+'</div></button>'});
+  h+='<button class="tile warn" id="tAttn"><div class="n">'+attn+'</div><div class="l">Needs attention</div></button>';
+  $("tiles").innerHTML=h;
+  $("tiles").querySelectorAll("[data-s]").forEach(b=>b.onclick=()=>{state.stage=b.dataset.s==="all"?null:Number(b.dataset.s);render()});
+  $("tAttn").onclick=()=>{$("fAttn").checked=!$("fAttn").checked;render()};
+}
+const PHOTOS=new Map();
+function photoInner(r){
+  if(!r.rowId)return '<span class="mute">Photos load when the page is connected to live data.</span>';
+  const p=PHOTOS.get(r.wo);
+  if(!p||p.status==="loading")return '<span class="mute">Loading photos…</span>';
+  if(p.status==="err")return '<span class="mute">Couldn\'t load photos.</span>';
+  const other=p.other?'<div class="mute">+ '+p.other+' other file'+(p.other>1?'s':'')+' (PDFs, HEIC, etc.) attached in Smartsheet</div>':'';
+  if(!p.imgs.length)return '<span class="mute">No photos attached.</span>'+other;
+  return '<div class="pgrid">'+p.imgs.map(i=>'<a href="'+esc(i.url)+'" target="_blank" rel="noopener"><img loading="lazy" src="'+esc(i.url)+'" alt="'+esc(i.name)+'"></a>').join("")+'</div>'+other;
+}
+async function loadPhotos(r){
+  if(!r.rowId||PHOTOS.has(r.wo))return;
+  PHOTOS.set(r.wo,{status:"loading"});
+  try{
+    const base=PROXY_URL+SHEET_PATH;
+    const res=await fetch(base+"/rows/"+r.rowId+"/attachments");
+    if(!res.ok)throw new Error(res.status);
+    const list=(await res.json()).data||[];
+    const meta=list.filter(a=>/^image\/(jpeg|png|gif|webp)/.test(a.mimeType||""));
+    const imgs=[];
+    await Promise.all(meta.map(async a=>{
+      const x=await fetch(base+"/attachments/"+a.id);
+      if(x.ok){const j=await x.json();if(j.url)imgs.push({name:a.name,url:j.url})}
+    }));
+    PHOTOS.set(r.wo,{status:"done",imgs,other:list.length-meta.length});
+  }catch(e){PHOTOS.set(r.wo,{status:"err"})}
+  const el=document.querySelector('.photos[data-wo="'+r.wo+'"]');
+  if(el)el.innerHTML=photoInner(r);
+}
+function springHtml(r){
+  const s=springHints(r);
+  if(s.none)return '<span class="mute">No spring sizes logged for this store yet.</span>';
+  let o="";
+  if(s.lines.length)o+='<ul>'+s.lines.map(l=>'<li><b>Unit '+esc(l.unit)+':</b> '+esc(l.text)+'</li>').join("")+'</ul>';
+  o+='<div class="mute">Logged at this store ('+s.n+' springs): '+esc(s.site)+'</div>';
+  return o;
+}
+const SORT={key:"age",dir:-1};
+const PRESET={age:["age",-1],new:["age",1],pm:["pm",1],store:["store",1],stage:["stage",1]};
+function render(){
+  renderTiles();
+  const s=$("sort").value;
+  const K=SORT.key,D=SORT.dir;
+  const val={owner:r=>r.owner||"",wo:r=>+r.wo||0,store:r=>r.store||"",desc:r=>(r.desc||"").toLowerCase(),stage:r=>r.step,pm:r=>r.pm||"",vendor:r=>r.vendor||"",access:r=>r.occ||"",issue:r=>r.rud||"",start:r=>r.start?+new Date(r.start):null,age:r=>age(r)};
+  const f0=val[K]||val.age;
+  const cmp=(x,y)=>typeof x==="string"||typeof y==="string"?String(x).localeCompare(String(y)):x-y;
+  const rows=filtered(false).sort((a,b)=>{
+    const x=f0(a),y=f0(b);
+    if(x===""||x===null)return (y===""||y===null)?0:1;   // blanks always last
+    if(y===""||y===null)return -1;
+    return D*cmp(x,y)||(age(b)-age(a));
+  });
+  document.querySelectorAll("th.sortable").forEach(th=>{const on=th.dataset.k===K;th.classList.toggle("on",on);th.querySelector(".arr").textContent=on?(D>0?"\u25B2":"\u25BC"):""});
+  $("rows").innerHTML=rows.map(r=>{
+    const f=flags(r), open=OPEN.has(r.wo);
+    const access=[r.occ,r.combo].filter(Boolean).map(esc).join('<div class="mute">')+(r.combo&&r.occ?'</div>':'');
+    return '<tr class="main'+(open?' open':'')+'" data-wo="'+esc(r.wo)+'"><td class="wo">'+esc(r.wo)+'</td>'+
+      '<td>'+esc(r.store)+(r.contact?'<div class="mute">'+esc(r.contact)+'</div>':'')+'</td>'+
+      '<td>'+esc(r.desc)+(f.length?'<div>'+f.map(x=>'<span class="flag">'+esc(x)+'</span>').join("")+'</div>':'')+'</td>'+
+      '<td>'+esc(r.owner||"\u2014")+'</td>'+
+      '<td><span class="badge s'+r.step+'">'+esc(STAGE[r.step]||"Other")+'</span></td>'+
+      '<td>'+esc(r.pm||"—")+'</td>'+
+      '<td>'+esc(r.vendor||"—")+(r.vstep?'<div class="mute">'+esc(r.vstep)+'</div>':'')+'</td>'+
+      '<td>'+(access||'<span class="mute">—</span>')+'</td>'+
+      '<td>'+esc(r.rud)+'</td>'+
+      '<td>'+fmtD(r.start)+'</td>'+
+      '<td>'+age(r)+'d</td></tr>'+
+      (open?'<tr class="detail"><td colspan="11"><div class="dgrid">'+
+        '<div><div class="k">Scope of Work</div><div class="scope">'+(esc(r.scope)||'<span class="mute">No scope entered</span>')+'</div></div>'+
+        '<div><div class="k">Occupancy Status</div>'+(esc(r.occ)||'<span class="mute">Not set</span>')+'</div>'+
+        '<div><div class="k">Combo Code</div>'+(esc(r.combo)||'<span class="mute">None</span>')+'</div>'+
+        '<div><div class="k">Door Issue</div>'+(esc(r.rud)||'<span class="mute">Not set</span>')+'</div>'+
+        '<div class="wide"><div class="k">Door Specs</div>'+specsHtml(r)+'</div>'+
+        '<div class="wide sp"><div class="k">Possible Spring Sizes</div>'+springHtml(r)+'</div>'+
+        '<div class="wide"><div class="k">Photos</div><div class="photos" data-wo="'+esc(r.wo)+'">'+photoInner(r)+'</div></div>'+
+        '<div class="wide"><button class="estbtn" data-wo="'+esc(r.wo)+'">Create Door Replacement Estimate</button></div>'+
+        '</div></td></tr>':'');
+  }).join("");
+  $("rows").querySelectorAll("tr.main").forEach(tr=>tr.onclick=()=>{
+    const w=tr.dataset.wo; OPEN.has(w)?OPEN.delete(w):OPEN.add(w); render();
+  });
+  rows.forEach(r=>{if(OPEN.has(r.wo))loadPhotos(r)});
+  $("empty").hidden=rows.length>0;
+}
+["q","fPm","fVendor","fOcc","fRud","fAttn"].forEach(id=>$(id).addEventListener(id==="q"?"input":"change",render));
+$("sort").addEventListener("change",()=>{const p=PRESET[$("sort").value];if(p){SORT.key=p[0];SORT.dir=p[1]}render()});
+document.querySelectorAll("th.sortable").forEach(th=>th.addEventListener("click",()=>{
+  const k=th.dataset.k;
+  if(SORT.key===k)SORT.dir=-SORT.dir;else{SORT.key=k;SORT.dir=(k==="age")?-1:1}
+  const m=Object.keys(PRESET).find(n=>PRESET[n][0]===SORT.key&&PRESET[n][1]===SORT.dir);
+  $("sort").value=m||"col";
+  render();
+}));
+
+async function load(){
+  let live=false;
+  try{
+    const res=await fetch(PROXY_URL+SHEET_PATH);
+    if(!res.ok)throw new Error(res.status);
+    const sheet=await res.json();
+    const rows=fromLive(sheet);
+    if(!rows.length)throw new Error("no rows");
+    DATA=rows;live=true;
+  }catch(e){
+    DATA=SNAP.map(fromSnap);
+  }
+  $("src").textContent=live?"Live from FM & CapEx PBR · "+DATA.length+" unit door WOs":"Snapshot "+SNAPSHOT_AT+" · "+DATA.length+" unit door WOs";
+  if(!live)$("note").innerHTML='<div class="note">Showing a snapshot, not live data. Live pull from the proxy didn\'t load; check PROXY_URL / SHEET_PATH at the top of this file.</div>';
+  buildFilters();render();
+}
+
+
+/* ---- Door specs (saved per project in this browser) ---- */
+const MOUNTS=["Masonry","Wood","Metal"],COLORS=["Royal Blue","Patriot Red","PS Orange","High gloss White"],HASPS=["Janus JBI-CTS"];
+let SPECS={};
+try{SPECS=JSON.parse(localStorage.getItem("doorSpecs")||"{}")}catch(e){}
+function saveSpecs(){try{localStorage.setItem("doorSpecs",JSON.stringify(SPECS))}catch(e){}}
+function specsHtml(r){
+  const s=SPECS[r.wo]||{};
+  const opt=(list,v,ph)=>'<option value="">'+ph+'</option>'+list.map(o=>'<option'+(o===v?' selected':'')+'>'+esc(o)+'</option>').join("");
+  return '<div class="specs" data-wo="'+esc(r.wo)+'">'+
+    '<div><label>Door Size</label><div class="sz"><input data-f="w" placeholder="Width" value="'+esc(s.w||"")+'"><span>\u00d7</span><input data-f="h" placeholder="Height" value="'+esc(s.h||"")+'"></div></div>'+
+    '<div><label>Mounting Type</label><select data-f="mount">'+opt(MOUNTS,s.mount,"Select\u2026")+'</select></div>'+
+    '<div><label>Color</label><select data-f="color">'+opt(COLORS,s.color,"Select\u2026")+'</select></div>'+
+    '<div><label>Hasp</label><select data-f="hasp">'+opt(HASPS,s.hasp===undefined?HASPS[0]:s.hasp,"Select\u2026")+'</select></div>'+
+  '</div>';
+}
+function specVal(r){const s=SPECS[r.wo]||{};return Object.assign({hasp:HASPS[0]},s)}
+$("rows").addEventListener("input",e=>{
+  const el=e.target.closest("[data-f]");if(!el)return;
+  const box=el.closest(".specs");if(!box)return;
+  const wo=box.dataset.wo;SPECS[wo]=Object.assign({},SPECS[wo]);SPECS[wo][el.dataset.f]=el.value;saveSpecs();
+});
+$("rows").addEventListener("change",e=>{const el=e.target.closest(".specs [data-f]");if(el)el.dispatchEvent(new Event("input",{bubbles:true}))});
+
+
+/* ---- Local storage helpers ---- */
+function fetchStore(k){try{return JSON.parse(localStorage.getItem(k)||"[]")}catch(e){return[]}}
+function store(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
+let ESTS=fetchStore("estimates"),MATS=fetchStore("materials");
+const EST_STATUS=["Draft","Sent","Approved","Declined"];
+const MAT_STATUS=["Ordered","Shipped","Backordered","Delivered"];
+const fmtISO=s=>{if(!s)return"\u2014";const m=/^(\d{4})-(\d\d)-(\d\d)$/.exec(s);return m?(+m[2])+"/"+(+m[3])+"/"+m[1]:s};
+function csv(name,head,rows){
+  const q=v=>'"'+String(v==null?"":v).replace(/"/g,'""')+'"';
+  const t=[head,...rows].map(r=>r.map(q).join(",")).join("\r\n");
+  const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([t],{type:"text/csv"}));a.download=name;a.click();
+}
+function tile(n,l,on,key){return '<button class="tile'+(on?' on':'')+'" data-k="'+esc(key)+'"><div class="n">'+n+'</div><div class="l">'+esc(l)+'</div></button>'}
+
+/* ---- Tabs ---- */
+function showView(v){
+  ["wo","est","mat"].forEach(x=>{$("view-"+x).hidden=x!==v});
+  document.querySelectorAll("#tabs .tab").forEach(t=>t.classList.toggle("on",t.dataset.v===v));
+  try{localStorage.setItem("doorTab",v)}catch(e){}
+  if(v==="est")renderEst();if(v==="mat")renderMat();
+}
+document.querySelectorAll("#tabs .tab").forEach(t=>t.onclick=()=>showView(t.dataset.v));
+
+/* ---- Estimates tab ---- */
+const EF={status:""};
+function fillOpts(sel,first,list){sel.innerHTML='<option value="">'+first+'</option>'+list.map(o=>'<option>'+esc(o)+'</option>').join("")}
+fillOpts($("estFStatus"),"All statuses",EST_STATUS);
+const STACEY="stacey.stanford@janusintl.com";
+function emailEstimate(rec){
+  const sp=Object.assign({},(typeof SPECS!=="undefined"&&SPECS[rec.wo])||{});
+  const w=rec.dw||sp.w||"",ht=rec.dh||sp.h||"",size=(w||ht)?[w,ht].filter(Boolean).join(" x "):"";
+  const r=(DATA||[]).find(x=>String(x.wo).trim()===String(rec.wo).trim());
+  const L=["Hi Stacey,","","Can you please provide a quote for the following door:",""];
+  if(rec.wo)L.push("Project No.: "+rec.wo+(rec.store?" ("+rec.store+")":""));
+  const ship=rec.ship||rec.addr||(r&&r.addr)||"";if(ship)L.push("Ship to: "+ship);
+  L.push("Quantity: "+(rec.dq||"1"));
+  if(size)L.push("Door size (W x H): "+size);
+  if(sp.mount)L.push("Mounting: "+sp.mount);
+  if(sp.color)L.push("Color: "+sp.color);
+  L.push("Hasp: "+(sp.hasp===undefined?HASPS[0]:sp.hasp||"None"));
+  L.push("","Please include shipping to the address above and lead time.","","Thank you,","Zak Kranich","Farmer Development");
+  location.href="mailto:"+STACEY+"?subject="+encodeURIComponent("Door quote request"+(rec.wo?" \u2013 Project "+rec.wo:""))+"&body="+encodeURIComponent(L.join("\n"));
+}
+$("estEmail").onclick=()=>emailEstimate({wo:$("estNo").value.trim(),store:EST_CUR.store,addr:$("estAddr").value,ship:$("estShip").value,dw:$("hW").value,dh:$("hH").value,dq:$("hQty").value});
+function renderEst(){
+  $("estCnt").textContent=ESTS.length?"("+ESTS.length+")":"";
+  const sum=s=>ESTS.filter(e=>e.status===s).reduce((t,e)=>t+e.total,0);
+  $("estTiles").innerHTML=tile(ESTS.length,"All estimates",!EF.status,"")+EST_STATUS.map(s=>tile(ESTS.filter(e=>e.status===s).length+' <span class="mute" style="font-size:12px;font-weight:400">'+money(sum(s))+'</span>',s,EF.status===s,s)).join("");
+  $("estTiles").querySelectorAll(".tile").forEach(b=>b.onclick=()=>{EF.status=b.dataset.k;$("estFStatus").value=EF.status;renderEst()});
+  const q=$("estQ").value.trim().toLowerCase(),st=$("estFStatus").value||EF.status;
+  const rows=ESTS.filter(e=>(!st||e.status===st)&&(!q||(e.wo+" "+e.store+" "+e.addr).toLowerCase().includes(q))).sort((a,b)=>b.id.localeCompare(a.id));
+  $("estRows").innerHTML=rows.map(e=>'<tr data-id="'+esc(e.id)+'"><td data-label="Project"><b>'+esc(e.wo)+'</b></td><td data-label="Store">'+esc(e.store)+'</td><td data-label="Address" class="wrapok">'+esc(e.addr)+'</td><td data-label="Date">'+esc(e.date)+'</td><td data-label="Total"><b>'+money(e.total)+'</b></td>'+
+    '<td data-label="Status"><select class="st">'+EST_STATUS.map(s=>'<option'+(s===e.status?' selected':'')+'>'+s+'</option>').join("")+'</select></td>'+
+    '<td><button class="lnk op">Open</button><button class="lnk em">Email</button><button class="lnk dl" style="color:var(--red)">Delete</button></td></tr>').join("");
+  $("estEmpty").hidden=rows.length>0;
+}
+$("estRows").addEventListener("click",e=>{
+  const tr=e.target.closest("tr");if(!tr)return;const rec=ESTS.find(x=>x.id===tr.dataset.id);if(!rec)return;
+  if(e.target.closest(".em"))emailEstimate(rec);
+  if(e.target.closest(".op"))fillEstimate({id:rec.id,wo:rec.wo,store:rec.store,date:rec.date,addr:rec.addr,ship:rec.ship,lines:rec.lines,status:rec.status,dw:rec.dw,dh:rec.dh,dq:rec.dq});
+  const dl=e.target.closest(".dl");
+  if(dl){
+    if(dl.dataset.sure){ESTS=ESTS.filter(x=>x.id!==rec.id);store("estimates",ESTS);renderEst()}
+    else{dl.dataset.sure="1";dl.textContent="Click again to confirm";dl.style.fontWeight="700";setTimeout(()=>{if(dl.isConnected){delete dl.dataset.sure;dl.textContent="Delete";dl.style.fontWeight=""}},4000)}
+  }
+});
+$("estRows").addEventListener("change",e=>{
+  if(!e.target.classList.contains("st"))return;
+  const rec=ESTS.find(x=>x.id===e.target.closest("tr").dataset.id);if(rec){rec.status=e.target.value;store("estimates",ESTS);renderEst()}
+});
+$("estQ").addEventListener("input",renderEst);
+$("estFStatus").addEventListener("change",()=>{EF.status=$("estFStatus").value;renderEst()});
+$("estCsv").onclick=()=>csv("estimates.csv",["Project No.","Store","Site address","Date","Total","Status","Line items"],ESTS.map(e=>[e.wo,e.store,e.addr,e.date,e.total.toFixed(2),e.status,e.lines.map(l=>l.d+" "+l.a).join(" | ")]));
+
+/* ---- Ordered Material tab ---- */
+const MF={status:""};
+fillOpts($("matFStatus"),"All statuses",MAT_STATUS);
+$("mStatus").innerHTML=MAT_STATUS.map(o=>"<option>"+o+"</option>").join("");
+function isoToday(){const d=new Date(),p=n=>String(n).padStart(2,"0");return d.getFullYear()+"-"+p(d.getMonth()+1)+"-"+p(d.getDate())}
+$("mOrd").value=isoToday();
+function lateMat(m){return m.status!=="Delivered"&&m.eta&&m.eta<isoToday()}
+const isNeed=m=>m.stage==="need";
+function doorInfo(wo){
+  wo=(wo||"").trim();const r=(DATA||[]).find(x=>String(x.wo).trim()===wo);if(!r)return{};
+  const sp=specVal(r),t=sizeFromText(r.scope+" "+r.desc);
+  const size=(sp.w||sp.h)?[sp.w,sp.h].filter(Boolean).join(" x "):(t?t.w+" x "+t.h:"");
+  return{r,size,mount:sp.mount||"",color:sp.color||"",hasp:sp.hasp||"",store:r.store,addr:r.addr||""};
+}
+function doorLine(d){return [d.size&&("Door size: "+d.size),d.mount&&("Mount: "+d.mount),d.color&&("Color: "+d.color),d.hasp&&("Hasp: "+d.hasp)].filter(Boolean).join(" | ")}
+function matMatch(m,q){return !q||(m.wo+" "+m.item+" "+m.vendor+" "+(m.note||"")).toLowerCase().includes(q)}
+function renderMat(){
+  const NEED=MATS.filter(isNeed),ORD=MATS.filter(m=>!isNeed(m));
+  $("matCnt").textContent=NEED.length?"("+NEED.length+" to order)":"";
+  $("needCnt").textContent=NEED.length?"("+NEED.length+")":"";
+  $("ordCnt").textContent=ORD.length?"("+ORD.length+")":"";
+  $("mWoList").innerHTML=(DATA||[]).map(r=>'<option value="'+esc(r.wo)+'">'+esc(r.store+" "+r.desc)+'</option>').join("");
+  $("mVendList").innerHTML=[...new Set([...(DATA||[]).map(r=>r.vendor),...MATS.map(m=>m.vendor)].filter(Boolean))].sort().map(v=>'<option value="'+esc(v)+'">').join("");
+  const q=$("matQ").value.trim().toLowerCase(),wmap={};(DATA||[]).forEach(r=>wmap[r.wo]=r);
+  const proj=m=>'<b>'+esc(m.wo)+'</b>'+(wmap[m.wo]?'<div class="mute">'+esc(wmap[m.wo].store)+'</div>':'');
+  /* needs ordering */
+  const nrows=NEED.filter(m=>matMatch(m,q)).sort((a,b)=>(a.added||"").localeCompare(b.added||""));
+  $("nRows").innerHTML=nrows.map(m=>'<tr data-id="'+esc(m.id)+'"><td><input type="checkbox" class="pick"></td><td data-label="Project">'+proj(m)+(doorInfo(m.wo).size?'<div class="mute">Door: '+esc(doorInfo(m.wo).size)+'</div>':'')+'</td>'+
+    '<td data-label="Item" class="wrapok"><input data-f="item" size="30" value="'+esc(m.item)+'"></td>'+
+    '<td data-label="Qty"><input data-f="qty" size="3" value="'+esc(m.qty)+'"></td>'+
+    '<td data-label="Vendor"><input data-f="vendor" size="16" list="mVendList" value="'+esc(m.vendor)+'"></td>'+
+    '<td data-label="Note" class="wrapok"><input data-f="note" size="22" value="'+esc(m.note||"")+'"></td>'+
+    '<td data-label="Added">'+fmtISO(m.added)+'</td>'+
+    '<td><button class="btn ord" style="padding:6px 10px">Mark ordered</button> <button class="del" title="Delete">×</button></td></tr>').join("");
+  $("nEmpty").hidden=nrows.length>0;
+  /* ordered */
+  const late=ORD.filter(lateMat).length;
+  $("matTiles").innerHTML=tile(ORD.length,"All orders",!MF.status,"")+MAT_STATUS.map(s=>tile(ORD.filter(m=>m.status===s).length,s,MF.status===s,s)).join("")+'<div class="tile" style="cursor:default"><div class="n" style="color:'+(late?'var(--red)':'inherit')+'">'+late+'</div><div class="l">Past ETA</div></div>';
+  $("matTiles").querySelectorAll("button.tile").forEach(b=>b.onclick=()=>{MF.status=b.dataset.k;$("matFStatus").value=MF.status;renderMat()});
+  const st=$("matFStatus").value||MF.status;
+  const rows=ORD.filter(m=>(!st||m.status===st)&&matMatch(m,q)).sort((a,b)=>(a.status==="Delivered")-(b.status==="Delivered")||(a.eta||"9").localeCompare(b.eta||"9"));
+  $("matRows").innerHTML=rows.map(m=>'<tr data-id="'+esc(m.id)+'"><td data-label="Project">'+proj(m)+'</td><td data-label="Item" class="wrapok">'+esc(m.item)+(m.note?'<div class="mute">'+esc(m.note)+'</div>':'')+'</td><td data-label="Qty">'+esc(m.qty)+'</td><td data-label="Vendor">'+esc(m.vendor)+'</td><td data-label="Ordered">'+fmtISO(m.ordered)+'</td>'+
+    '<td data-label="ETA"><input type="date" class="eta" value="'+esc(m.eta||"")+'">'+(lateMat(m)?'<div class="over">Past ETA</div>':'')+'</td>'+
+    '<td data-label="Status"><select class="st">'+MAT_STATUS.map(s=>'<option'+(s===m.status?' selected':'')+'>'+s+'</option>').join("")+'</select></td>'+
+    '<td><button class="lnk back" title="Move back to needs ordering">Undo</button><button class="del" title="Delete">×</button></td></tr>').join("");
+  $("matEmpty").hidden=rows.length>0;
+}
+function showInfo(){
+  const d=doorInfo($("nWo").value);
+  $("nInfo").innerHTML=!$("nWo").value.trim()?"":!d.r?"No matching project found.":'<b>'+esc(d.store)+'</b>'+(d.addr?' \u2013 '+esc(d.addr):'')+'<br>'+(doorLine(d)?esc(doorLine(d)):'No door size entered yet \u2013 add it in the Work Orders tab.');
+}
+$("nWo").addEventListener("input",showInfo);$("nWo").addEventListener("change",showInfo);
+$("nTo").value="stacey.stanford@janusintl.com";
+$("nEmail").onclick=()=>{
+  const picked=[...$("nRows").querySelectorAll("tr")].filter(tr=>tr.querySelector(".pick")?.checked).map(tr=>tr.dataset.id);
+  let items=MATS.filter(isNeed);if(picked.length)items=items.filter(m=>picked.includes(m.id));
+  if(!items.length){alert("Nothing to email.");return}
+  const body=["Hi,","","Please see the material below that we need to order:",""].concat(items.map((m,i)=>{
+    const d=doorInfo(m.wo);
+    return (i+1)+". "+m.item+" \u2013 Qty "+m.qty+(m.wo?"\n   Project No.: "+m.wo+(d.store?" ("+d.store+")":""):"")+(d.addr?"\n   Ship to: "+d.addr:"")+(doorLine(d)?"\n   "+doorLine(d):"")+(m.note?"\n   Note: "+m.note:"");
+  })).concat(["","Please confirm pricing, lead time and shipping method.","","Thank you,","Zak Kranich","Farmer Development"]).join("\n");
+  location.href="mailto:"+encodeURIComponent($("nTo").value.trim()).replace(/%40/g,"@").replace(/%2C/g,",")+"?subject="+encodeURIComponent("Material order request"+(items.length===1&&items[0].wo?" \u2013 Project "+items[0].wo:""))+"&body="+encodeURIComponent(body);
+};
+$("nAdd").onclick=()=>{
+  const item=$("nItem").value.trim();if(!item){$("nItem").focus();return}
+  MATS.push({id:"m"+Date.now(),stage:"need",wo:$("nWo").value.trim(),item,qty:$("nQty").value.trim()||"1",vendor:$("nVendor").value.trim(),note:$("nNote").value.trim()||doorLine(doorInfo($("nWo").value)),added:isoToday()});
+  store("materials",MATS);$("nItem").value="";$("nNote").value="";$("nQty").value="1";renderMat();$("nItem").focus();
+};
+$("mAdd").onclick=()=>{
+  const item=$("mItem").value.trim();if(!item){$("mItem").focus();return}
+  MATS.push({id:"m"+Date.now(),stage:"ordered",wo:$("mWo").value.trim(),item,qty:$("mQty").value.trim()||"1",vendor:$("mVendor").value.trim(),ordered:$("mOrd").value,eta:$("mEta").value,status:$("mStatus").value});
+  store("materials",MATS);$("mItem").value="";$("mEta").value="";$("mQty").value="1";renderMat();
+};
+$("nRows").addEventListener("change",e=>{
+  const f=e.target.closest("[data-f]");if(!f)return;
+  const m=MATS.find(x=>x.id===e.target.closest("tr").dataset.id);if(!m)return;
+  m[f.dataset.f]=f.value;store("materials",MATS);
+});
+$("nRows").addEventListener("click",e=>{
+  const tr=e.target.closest("tr");if(!tr)return;const m=MATS.find(x=>x.id===tr.dataset.id);if(!m)return;
+  if(e.target.closest(".ord")){m.stage="ordered";m.ordered=isoToday();m.status="Ordered";m.eta=m.eta||"";store("materials",MATS);renderMat()}
+  else if(e.target.closest(".del")&&confirm("Delete "+m.item+"?")){MATS=MATS.filter(x=>x.id!==m.id);store("materials",MATS);renderMat()}
+});
+$("matRows").addEventListener("change",e=>{
+  const m=MATS.find(x=>x.id===e.target.closest("tr").dataset.id);if(!m)return;
+  if(e.target.classList.contains("st"))m.status=e.target.value;
+  if(e.target.classList.contains("eta"))m.eta=e.target.value;
+  store("materials",MATS);renderMat();
+});
+$("matRows").addEventListener("click",e=>{
+  const tr=e.target.closest("tr");if(!tr)return;const m=MATS.find(x=>x.id===tr.dataset.id);if(!m)return;
+  if(e.target.closest(".back")){m.stage="need";m.added=m.added||isoToday();store("materials",MATS);renderMat()}
+  else if(e.target.closest(".del")&&confirm("Delete "+m.item+"?")){MATS=MATS.filter(x=>x.id!==m.id);store("materials",MATS);renderMat()}
+});
+$("matQ").addEventListener("input",renderMat);
+$("matFStatus").addEventListener("change",()=>{MF.status=$("matFStatus").value;renderMat()});
+$("matCsv").onclick=()=>csv("materials.csv",["List","Project No.","Item","Qty","Vendor","Note","Added","Ordered","ETA","Status"],MATS.map(m=>[isNeed(m)?"Needs ordering":"Ordered",m.wo,m.item,m.qty,m.vendor,m.note||"",m.added||"",m.ordered||"",m.eta||"",m.status||""]));
+
+
+/* ---- Janus pricing ---- */
+const VIA_OPTS=["LTL","Hot Shot (crated)","Hot Shot (no crates)","Pick Up"];
+const viaNorm=v=>v==="Hot Shot"?"Hot Shot (crated)":v;
+["jVia","hVia"].forEach(id=>{$(id).innerHTML=VIA_OPTS.map(o=>"<option>"+o+"</option>").join("")});
+let JANUS=fetchStore("janusPrices");
+function parseFt(s){
+  s=String(s||"").trim().toLowerCase();if(!s)return null;
+  const m=s.match(/^(\d+(?:\.\d+)?)\s*(?:'|ft|feet)?\s*(?:(\d+(?:\.\d+)?)\s*(?:"|in)?)?$/);
+  if(!m)return null;
+  let v=parseFloat(m[1]);const inch=m[2]?parseFloat(m[2]):0;
+  if(!m[2]&&v>20)return v/12;          // 96 -> inches
+  v+=inch/12;return v>0?v:null;
+}
+function fmtFt(n){let f=Math.floor(n+1e-9),i=Math.round((n-f)*12);if(i===12){f++;i=0}return f+"'"+(i?i+'"':"")}
+const r5=n=>Math.round(n/5)*5;
+function estimateFrom(E,key,w,h){
+  /* returns {val, how:'exact'|'trend'|'scaled'} using entries that have a positive value for key */
+  const L=E.filter(e=>e[key]>0);if(!L.length)return null;
+  const ex=L.filter(e=>Math.abs(e.w-w)<.04&&Math.abs(e.h-h)<.04);
+  if(ex.length){const p=ex.map(e=>e[key]);return{val:p.reduce((a,b)=>a+b,0)/p.length,how:"exact",n:ex.length,lo:Math.min(...p),hi:Math.max(...p)}}
+  const area=w*h;
+  if(L.length>=3){
+    const n=L.length;let sx=0,sy=0,sxy=0,sxx=0;
+    L.forEach(e=>{const a=e.w*e.h;sx+=a;sy+=e[key];sxy+=a*e[key];sxx+=a*a});
+    const den=n*sxx-sx*sx;
+    if(Math.abs(den)>1e-6){const b=(n*sxy-sx*sy)/den,a=(sy-b*sx)/n;if(b>0&&a+b*area>0)return{val:a+b*area,how:"trend",n}}
+  }
+  const e=L.map(e=>({e,d:Math.hypot(e.w-w,e.h-h)})).sort((a,b)=>a.d-b.d)[0].e;
+  return{val:e[key]/(e.w*e.h)*area,how:"scaled",n:L.length};
+}
+function janusSuggest(w,h){
+  const E=JANUS.filter(e=>e.w&&e.h&&e.price>0);
+  if(!E.length)return{msg:"No Janus prices saved yet. Add some under Estimates \u2192 Janus Door Pricing."};
+  const d=estimateFrom(E,"price",w,h);
+  const area=w*h,areas=E.map(e=>e.w*e.h);
+  const near=E.map(e=>({e,d:Math.hypot(e.w-w,e.h-h)})).sort((a,b)=>a.d-b.d).slice(0,3);
+  const how={exact:"exact "+fmtFt(w)+" \u00d7 "+fmtFt(h)+" match",trend:"trend across "+d.n+" saved sizes",scaled:"scaled by sq ft from nearest size"}[d.how];
+  const price=r5(d.val);
+  const lo=d.how==="exact"?r5(d.lo):r5(d.val*.92),hi=d.how==="exact"?r5(d.hi):r5(d.val*1.08);
+  let m="Rough cost: <b>"+(d.how==="exact"?"":"~")+money(price)+"</b>"+(lo!==hi?" (about "+money(lo)+"\u2013"+money(hi)+")":"")+" \u2013 "+how+".";
+  if(d.how!=="exact")m+=" Nearest: "+near.map(x=>fmtFt(x.e.w)+" \u00d7 "+fmtFt(x.e.h)+" "+money(x.e.price)).join(", ")+".";
+  if(area<Math.min(...areas)*.6||area>Math.max(...areas)*1.4)m+=" Outside your saved sizes, so treat it loosely.";
+  return{price,msg:m};
+}
+function renderJanus(){
+  $("jCnt").textContent=JANUS.length?"("+JANUS.length+")":"";
+  $("jEmpty").hidden=JANUS.length>0;
+  const rows=[...JANUS].sort((a,b)=>a.w*a.h-b.w*b.h||a.price-b.price);
+  const sel=(v)=>{v=viaNorm(v);return '<select data-f="via">'+VIA_OPTS.map(o=>'<option'+(o===v?' selected':'')+'>'+o+'</option>').join("")+'</select>'};
+  $("jRows").innerHTML=rows.map(e=>'<tr data-id="'+esc(e.id)+'">'+
+    '<td data-label="Size"><input data-f="w" size="5" value="'+esc(fmtFt(e.w))+'" aria-label="Width"> \u00d7 <input data-f="h" size="5" value="'+esc(fmtFt(e.h))+'" aria-label="Height"></td>'+
+    '<td data-label="Sq ft" class="sqf">'+(e.w*e.h).toFixed(1)+'</td>'+
+    '<td data-label="Note" class="wrapok"><input data-f="note" size="22" value="'+esc(e.note)+'"></td>'+
+    '<td data-label="Date"><input data-f="date" type="date" value="'+esc(e.date||"")+'"></td>'+
+    '<td data-label="Door price"><input data-f="price" size="9" inputmode="decimal" value="'+(+e.price).toFixed(2)+'"></td>'+
+    '<td data-label="Ship via">'+sel(e.via)+'</td>'+
+    '<td data-label="$/sq ft" class="psf">'+money(e.price/(e.w*e.h))+'</td>'+
+    '<td><button class="del" title="Delete">\u00d7</button></td></tr>').join("");
+}
+$("jRows").addEventListener("change",ev=>{
+  const el=ev.target.closest("[data-f]");if(!el)return;
+  const tr=el.closest("tr"),e=JANUS.find(x=>x.id===tr.dataset.id);if(!e)return;
+  const f=el.dataset.f,v=el.value;
+  if(f==="w"||f==="h"){const n=parseFt(v);if(n){e[f]=n}el.value=fmtFt(e[f])}
+  else if(f==="price"){const n=parseFloat(String(v).replace(/[$,]/g,""));if(n>0)e.price=n;el.value=(+e.price).toFixed(2)}
+  else if(f==="note")e.note=v;
+  else if(f==="date")e.date=v;
+  else if(f==="via")e.via=v;
+  store("janusPrices",JANUS);
+  tr.querySelector(".sqf").textContent=(e.w*e.h).toFixed(1);
+  tr.querySelector(".psf").textContent=money(e.price/(e.w*e.h));
+  if($("hW")&&!$("estOv").hidden)helperUpdate();
+});
+function addJanus(w,h,price,note,date,via){
+  JANUS.push({id:"j"+Date.now()+Math.floor(Math.random()*99),w,h,price,via:via||"LTL",note:note||"",date:date||""});
+  store("janusPrices",JANUS);renderJanus();
+}
+$("jDate").value=isoToday();
+$("jAdd").onclick=()=>{
+  const w=parseFt($("jW").value),h=parseFt($("jH").value),p=parseFloat(String($("jPrice").value).replace(/[$,]/g,""));
+  if(!w){$("jW").focus();return}if(!h){$("jH").focus();return}if(!(p>0)){$("jPrice").focus();return}
+  addJanus(w,h,p,$("jNote").value.trim(),$("jDate").value,$("jVia").value);
+  $("jPrice").value="";$("jNote").value="";$("jW").focus();
+};
+$("jRows").addEventListener("click",e=>{
+  if(!e.target.closest(".del"))return;const id=e.target.closest("tr").dataset.id;
+  if(confirm("Delete this saved price?")){JANUS=JANUS.filter(x=>x.id!==id);store("janusPrices",JANUS);renderJanus()}
+});
+$("jCsv").onclick=()=>csv("janus-pricing.csv",["Width (ft)","Height (ft)","Door price","Ship via","Note","Date"],JANUS.map(e=>[e.w.toFixed(2),e.h.toFixed(2),e.price.toFixed(2),e.via||"",e.note,e.date]));
+
+/* ---- Estimate price helper ---- */
+let SUG=null;
+const VCOST={recv:{"LTL":350,"Hot Shot (crated)":225,"Hot Shot (no crates)":100,"Pick Up":200},decrate:125,disposal:50};
+const CRATED=["LTL","Hot Shot (crated)"];
+function installCost(w,h){const a=w*h;if(a>64.5)return 650;if(w<=4.5)return 400;return 500}
+function qtyDoors(){const q=parseInt($("hQty").value,10);return q>0?q:1}
+const num$=id=>{const v=parseFloat(String($(id).value).replace(/[$,]/g,""));return v>=0?v:0};
+const PI_IDS=["iMat","iInst","iRecv","iDec","iDis"];
+function clearOverrides(){PI_IDS.forEach(id=>{delete $(id).dataset.ovr})}
+let MODEL=null,MCFG={on:true,shown:20,real:30,hidM:7};
+try{Object.assign(MCFG,JSON.parse(localStorage.getItem("marginCfg")||"{}"))}catch(e){}
+function loadMcfg(){$("hMrg").checked=MCFG.on;$("hShown").value=MCFG.shown;$("hReal").value=MCFG.real;$("hHidM").value=MCFG.hidM}
+function readMcfg(){
+  MCFG={on:$("hMrg").checked,shown:parseFloat($("hShown").value)||0,real:parseFloat($("hReal").value)||0,hidM:parseFloat($("hHidM").value)||0};
+  try{localStorage.setItem("marginCfg",JSON.stringify(MCFG))}catch(e){}
+}
+loadMcfg();
+function costParts(w,h){
+  const q=qtyDoors(),via=$("hVia").value;
+  return{via,q,
+    mat:$("hMat").checked?num$("iMat")*q:0,
+    inst:$("hInst").checked?num$("iInst")*q:0,
+    recv:$("hRecv").checked?num$("iRecv"):0,
+    dec:$("hDec").checked?num$("iDec")*q:0,
+    dis:$("hDis").checked?num$("iDis")*q:0};
+}
+/* cost -> what the estimate shows. Real margin on price, shown OH&P line, remainder hidden in material and labor */
+function priceModel(c){
+  const cost=c.mat+c.inst+c.recv+c.dec+c.dis;
+  const o={cost,mat:c.mat,inst:c.inst,recv:c.recv,dec:c.dec,dis:c.dis,oh:0,total:cost,hid:0,hidM:0,hidL:0};
+  if(!MCFG.on||cost<=0||MCFG.real>=100)return o;
+  const real=MCFG.real/100,shown=MCFG.shown/100,P=Math.round(cost/(1-real));
+  let hid=Math.max(0,P*(real-shown)),hidM=Math.min(P*MCFG.hidM/100,hid),hidL=hid-hidM;
+  if(!c.mat){hidL+=hidM;hidM=0}
+  if(!c.inst){hidM+=hidL;hidL=0}
+  if(!c.mat&&!c.inst){hidM=0;hidL=0}
+  o.mat=c.mat?Math.round(c.mat+hidM):0;
+  o.inst=c.inst?Math.round(c.inst+hidL):0;
+  o.oh=P-(o.mat+o.inst+o.recv+o.dec+o.dis);
+  o.total=P;o.hidM=hidM;o.hidL=hidL;o.hid=hidM+hidL;
+  return o;
+}
+function helperUpdate(){
+  const w=parseFt($("hW").value),h=parseFt($("hH").value);SUG=null;MODEL=null;
+  if(!w||!h){$("hOut").textContent="Enter the door width and height to see a rough cost from your past Janus prices and vendor rates.";hintDoorLine();return}
+  const r=janusSuggest(w,h);SUG=r.price||null;
+  const q=qtyDoors(),via=$("hVia").value;
+  const auto={iMat:SUG||0,iInst:installCost(w,h)-(q>1?50:0),iRecv:VCOST.recv[via]||0,iDec:VCOST.decrate,iDis:VCOST.disposal};
+  PI_IDS.forEach(id=>{if(!$(id).dataset.ovr)$(id).value=auto[id].toFixed(2)});
+  const c=costParts(w,h),m=priceModel(c);MODEL=m;
+  const bits=[];
+  if(c.mat)bits.push("Material "+(q>1?q+" × "+money(num$("iMat"))+" = ":"")+money(c.mat));
+  if(c.inst)bits.push("Install "+(q>1?q+" × "+money(num$("iInst"))+" = ":"")+money(c.inst)+(q>1?" (multi-door −$50 each)":""));
+  if(c.recv)bits.push("Receiving ("+via+") "+money(c.recv));
+  if(c.dec)bits.push("Decrating "+money(c.dec));
+  if(c.dis)bits.push("Disposal "+money(c.dis));
+  let html=(c.mat?r.msg:'<span style="color:#6b7685">Door material not included.</span>')+'<div class="brk"><b>Your cost:</b> '+(bits.length?bits.join(" · "):"nothing selected")+" → <b>"+money(m.cost)+"</b>"+(c.mat&&!SUG&&!$("iMat").dataset.ovr?" (no Janus price saved, type one in)":"")+"</div>";
+  if(MCFG.on&&m.cost>0){
+    const sb=[];
+    const lab=m.inst+m.recv+m.dec;
+    if(m.mat)sb.push("Material "+money(m.mat));if(lab)sb.push("Labor "+money(lab)+" (install + receiving + decrating)");
+    if(m.dis)sb.push("Disposal "+money(m.dis));
+    sb.push("OH&P "+money(m.oh));
+    html+='<div class="brk"><b>Estimate shows:</b> '+sb.join(" · ")+" → <b>"+money(m.total)+"</b> <span style='color:#6b7685'>(OH&P "+(m.total?(m.oh/m.total*100).toFixed(1):0)+"%; real margin "+((m.total-m.cost)/m.total*100).toFixed(1)+"%; "+money(m.hid)+" hidden: "+money(m.hidM)+" material, "+money(m.hidL)+" labor)</span></div>";
+  }
+  $("hOut").innerHTML=html;
+  hintDoorLine();
+}
+["hW","hH","hQty"].forEach(id=>$(id).addEventListener("input",()=>{clearOverrides();helperUpdate()}));
+PI_IDS.forEach(id=>$(id).addEventListener("input",()=>{$(id).dataset.ovr="1";helperUpdate()}));
+["hShown","hReal","hHidM"].forEach(id=>$(id).addEventListener("input",()=>{readMcfg();helperUpdate()}));
+$("hMrg").addEventListener("change",()=>{readMcfg();helperUpdate()});
+$("hReset").onclick=()=>{clearOverrides();helperUpdate()};
+function laborTotal(){return MODEL?MODEL.inst+MODEL.recv+MODEL.dec:0}
+function refreshFilled(){if(lineBy(/^\s*(labor|install)/i)||lineBy(/oh\s*&\s*p/i)&&lineBy(/^\s*disposal/i))$("hUse").onclick()}
+function refreshLabor(){
+  const tr=lineBy(/^\s*labor/i);if(!tr||!MODEL)return;
+  const t=laborTotal();
+  if(t>0)tr.querySelector(".amt").value=t.toFixed(2);else tr.remove();
+  estTotal();
+}
+function syncOptional(){
+  const tr=lineBy(/^\s*disposal/i);if(tr&&!$("hDis").checked)tr.remove();
+  estTotal();
+}
+["hMat","hInst","hRecv","hDec","hDis"].forEach(id=>$(id).addEventListener("change",()=>{syncOptional();helperUpdate();refreshFilled()}));
+$("hVia").addEventListener("change",()=>{
+  $("hDec").checked=CRATED.includes($("hVia").value);syncOptional();
+  clearOverrides();helperUpdate();refreshFilled();
+});
+
+function hintDoorLine(){
+  const a=doorLineAmt();if(!a)return;
+  a.placeholder=(MODEL&&MODEL.mat>0)?"≈ "+MODEL.mat.toFixed(2):"0.00";
+}
+function sizeFromText(t){
+  const num="(\\d+(?:\\.\\d+)?\\s*(?:'|’|ft)?\\s*(?:\\d+(?:\\.\\d+)?\\s*(?:\"|in|”)?)?)";
+  const m=new RegExp(num+"\\s*[wW]?\\s*(?:x|×|by)\\s*"+num+"\\s*[hH]?","i").exec(t||"");
+  if(!m)return null;
+  const w=parseFt(m[1].replace(/’/g,"'").replace(/”/g,'"')),h=parseFt(m[2].replace(/’/g,"'").replace(/”/g,'"'));
+  return w&&h?{w:m[1].trim(),h:m[2].trim()}:null;
+}
+function doorLineAmt(){return $("estLines").querySelector(".amt")}
+function lineBy(re){return [...$("estLines").querySelectorAll("tr")].find(tr=>re.test(tr.querySelector(".d").value))}
+function upsertLine(re,desc,amt){
+  let tr=lineBy(re);
+  if(!tr){
+    estLine(desc,"");tr=$("estLines").lastElementChild;
+    const oh=lineBy(/oh\s*&\s*p/i);if(oh&&oh!==tr)$("estLines").insertBefore(tr,oh);
+  }else tr.querySelector(".d").value=desc;
+  tr.querySelector(".amt").value=amt.toFixed(2);
+}
+$("hUse").onclick=()=>{
+  const w=parseFt($("hW").value),h=parseFt($("hH").value);
+  if(!w||!h){(w?$("hH"):$("hW")).focus();return}
+  helperUpdate();const c=costParts(w,h),m=MODEL,q=c.q;
+  const a=doorLineAmt();if(a&&c.mat)a.value=m.mat.toFixed(2);
+  /* receiving and decrating are folded into the labor line */
+  ["receiving","decrat"].forEach(k=>{const t=lineBy(new RegExp("^\\s*"+k,"i"));if(t)t.remove()});
+  const lab=m.inst+m.recv+m.dec;
+  if(lab>0)upsertLine(/^\s*(labor|install)/i,q>1?"Labor \u2013 "+q+" doors":"Labor",lab);
+  else{const lt=lineBy(/^\s*(labor|install)/i);if(lt)lt.remove()}
+  if(c.dis)upsertLine(/^\s*disposal/i,"Disposal",m.dis);
+  if(MCFG.on&&m.cost>0)upsertLine(/oh\s*&\s*p/i,"FDI OH&P",m.oh);
+  estTotal();
+};
+$("hSave").onclick=()=>{
+  const w=parseFt($("hW").value),h=parseFt($("hH").value);
+  if(!w||!h){(w?$("hH"):$("hW")).focus();return}
+  if(!$("iMat").dataset.ovr){$("hOut").textContent="Type the real Janus price into the Door material box (price per door), then save it.";return}
+  const p=num$("iMat");if(!(p>0))return;
+  addJanus(w,h,p,"Estimate "+($("estNo").value||"manual"),isoToday(),$("hVia").value);
+  $("hOut").innerHTML="Saved "+fmtFt(w)+" × "+fmtFt(h)+" at "+money(p)+" ("+$("hVia").value+") to the price list.";
+};
+/* typing a project number in a manual estimate fills the rest from the work order */
+$("estNo").addEventListener("change",()=>{
+  const r=(DATA||[]).find(x=>x.wo===$("estNo").value.trim());if(!r)return;
+  EST_CUR=EST_CUR||{};EST_CUR.store=r.store;EST_CUR.wo=r.wo;
+  if(!$("estAddr").value)$("estAddr").value=r.addr||r.store||"";
+  if(!$("estShip").value)$("estShip").value=r.addr||r.store||"";
+  const sp=specVal(r);if(!$("hW").value&&sp.w)$("hW").value=sp.w;if(!$("hH").value&&sp.h)$("hH").value=sp.h;
+  helperUpdate();
+});
+$("estNew").onclick=()=>fillEstimate({wo:"",store:"",date:today(),addr:"",ship:"",dw:"",dh:"",
+  lines:[{d:"Replace unit door",a:""},{d:"Labor",a:""},{d:"FDI OH&P",a:""}]});
+
+/* ---- Door replacement estimate ---- */
+const money=n=>"$"+(Number(n)||0).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2});
+function estLine(d,a){
+  const tr=document.createElement("tr");
+  tr.innerHTML='<td></td><td><input class="d"></td><td class="r"><input class="amt" inputmode="decimal" placeholder="0.00"></td><td><button class="x" title="Remove line">\u00d7</button></td>';
+  tr.querySelector(".d").value=d||"";tr.querySelector(".amt").value=a||"";
+  tr.querySelector(".amt").addEventListener("input",estTotal);
+  tr.querySelector(".d").addEventListener("input",()=>{
+    if(tr!==$("estLines").firstElementChild)return;
+    const s=sizeFromText(tr.querySelector(".d").value);
+    if(s){$("hW").value=s.w;$("hH").value=s.h;clearOverrides();helperUpdate()}
+  });
+  tr.querySelector(".x").onclick=()=>{tr.remove();estTotal()};
+  $("estLines").appendChild(tr);
+}
+function estTotal(){
+  let t=0;$("estLines").querySelectorAll(".amt").forEach(i=>{t+=parseFloat(String(i.value).replace(/[$,]/g,""))||0});
+  $("estTot").textContent=money(t);
+}
+let EST_CUR=null;
+function today(){const d=new Date(),p=n=>String(n).padStart(2,"0");return p(d.getMonth()+1)+"/"+p(d.getDate())+"/"+d.getFullYear()}
+function fillEstimate(e){
+  EST_CUR={id:e.id||null,wo:e.wo,store:e.store||"",status:e.status||"Draft"};
+  $("estNo").value=e.wo;$("estDate").value=e.date;$("estAddr").value=e.addr;$("estShip").value=e.ship;
+  $("estLines").innerHTML="";(e.lines||[]).forEach(l=>estLine(l.d,l.a));
+  $("hW").value=e.dw||"";$("hH").value=e.dh||"";$("hQty").value=e.dq||1;clearOverrides();helperUpdate();
+  estTotal();$("estOv").hidden=false;$("estOv").scrollTop=0;
+}
+function openEstimate(r){
+  const sp=specVal(r),bits=[(sp.w||sp.h)?[sp.w,sp.h].filter(Boolean).join(" x "):"",sp.mount&&sp.mount+" mount",sp.color,sp.hasp&&"Hasp: "+sp.hasp].filter(Boolean);
+  fillEstimate({wo:r.wo,store:r.store,date:today(),addr:r.addr||r.store||"",ship:r.addr||r.store||"",dw:sp.w||"",dh:sp.h||"",
+    lines:[{d:"Replace unit door"+(r.desc?" \u2013 "+r.desc:"")+(bits.length?" ("+bits.join(", ")+")":""),a:""},{d:"Labor",a:""},{d:"FDI OH&P",a:""}]});
+}
+function estTotalNum(){let t=0;$("estLines").querySelectorAll(".amt").forEach(i=>{t+=parseFloat(String(i.value).replace(/[$,]/g,""))||0});return t}
+function saveEstimate(){
+  if(!EST_CUR)return;
+  const lines=[...$("estLines").querySelectorAll("tr")].map(tr=>({d:tr.querySelector(".d").value,a:tr.querySelector(".amt").value}));
+  const rec={id:EST_CUR.id||("e"+Date.now()),wo:$("estNo").value.trim(),store:EST_CUR.store,date:$("estDate").value,addr:$("estAddr").value,ship:$("estShip").value,lines,total:estTotalNum(),status:EST_CUR.status||"Draft",dw:$("hW").value,dh:$("hH").value,dq:$("hQty").value};
+  EST_CUR.id=rec.id;
+  const i=ESTS.findIndex(x=>x.id===rec.id);i>=0?ESTS[i]=rec:ESTS.push(rec);
+  store("estimates",ESTS);renderEst();
+  const b=$("estSave");b.textContent="Saved \u2713";setTimeout(()=>{b.textContent="Save Estimate"},1500);
+}
+$("estAdd").onclick=()=>{estLine("","");};
+$("estClose").onclick=()=>{$("estOv").hidden=true};
+$("estSave").onclick=saveEstimate;
+$("estPrint").onclick=async()=>{
+  saveEstimate();
+  if(typeof html2pdf==="undefined"){window.print();return}
+  const sh=$("estSheet"),btn=$("estPrint"),old=btn.textContent;
+  btn.textContent="Creating PDF\u2026";btn.disabled=true;sh.classList.add("pdfmode");
+  const name=("Estimate - "+($("estNo").value.trim()||"draft")+(EST_CUR.store?" "+EST_CUR.store:"")).replace(/[\\\/:*?"<>|]/g,"")+".pdf";
+  try{
+    sh.querySelectorAll("textarea").forEach(t=>{const d=document.createElement("div"),cs=getComputedStyle(t);d.className="pdfclone";d.textContent=t.value;
+      d.style.cssText="white-space:pre-wrap;word-break:break-word;font:"+cs.font+";color:"+cs.color+";line-height:"+cs.lineHeight+";width:"+t.clientWidth+"px;text-align:"+cs.textAlign;
+      t.style.display="none";t.after(d)});
+    await html2pdf().set({margin:[0.4,0.4,0.4,0.4],filename:name,image:{type:"jpeg",quality:0.98},html2canvas:{scale:2,useCORS:true,backgroundColor:"#ffffff",scrollY:0},jsPDF:{unit:"in",format:"letter",orientation:"portrait"},pagebreak:{mode:["css","legacy"]}}).from(sh).save();
+  }catch(err){window.print()}
+  sh.querySelectorAll(".pdfclone").forEach(d=>d.remove());sh.querySelectorAll("textarea").forEach(t=>t.style.display="");sh.classList.remove("pdfmode");btn.textContent=old;btn.disabled=false;
+};
+document.addEventListener("keydown",e=>{if(e.key==="Escape")$("estOv").hidden=true});
+$("rows").addEventListener("click",e=>{
+  const b=e.target.closest(".estbtn");if(!b)return;
+  e.stopPropagation();
+  const r=DATA.find(x=>x.wo===b.dataset.wo);if(r)openEstimate(r);
+});
+load();
+renderEst();renderMat();renderJanus();
+try{const v=localStorage.getItem('doorTab');if(v&&v!=='wo')showView(v)}catch(e){}
+</script>
+</body>
+</html>
